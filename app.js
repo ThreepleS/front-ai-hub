@@ -192,7 +192,7 @@ function autoSaveCurrentDialog() {
     existing.messages = dialog.messages;
     existing.model = dialog.model;
     existing.system_prompt = dialog.system_prompt;
-    existing.updated_at = existing.updated_at;
+    existing.updated_at = dialog.updated_at;
   }
   saveDialogs(data);
 }
