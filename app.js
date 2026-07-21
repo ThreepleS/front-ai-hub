@@ -2642,5 +2642,3 @@ function saveLocalHistory() {
     localStorage.setItem("chat_history", JSON.stringify(msgs));
   } catch {}
 }
--e 
- 
