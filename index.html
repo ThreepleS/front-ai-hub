@@ -47,6 +47,23 @@
         </svg>
       </button>
       <button
+        id="dialogsBtn"
+        class="hbtn"
+        title="Диалоги"
+        aria-label="Диалоги"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+      </button>
+      <button
         id="newChatBtn"
         class="hbtn"
         title="Начать новый диалог"
@@ -523,6 +540,17 @@
       <div class="lb-actions">
         <button id="lb_save">💾 Сохранить</button>
         <button id="lb_reply" class="lb-reply">↩️ Ответить</button>
+      </div>
+    </div>
+
+    <div id="dialogs" class="overlay">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="grip"></span>
+          <b>💬 Диалоги</b>
+          <button class="close" data-close="dialogsPanel" title="Закрыть">✕</button>
+        </div>
+        <div class="panel-body" id="dialogsPanel_body"></div>
       </div>
     </div>
 

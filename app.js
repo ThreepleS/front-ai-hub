@@ -69,6 +69,216 @@ function escapeHtml(s) {
 }
 const esc = escapeHtml;
 
+// --- Dialog management ---------------------------------------------------
+function generateDialogName() {
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, "0");
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const yy = String(now.getFullYear()).slice(-2);
+  const hh = String(now.getHours()).padStart(2, "0");
+  const min = String(now.getMinutes()).padStart(2, "0");
+  return `Диалог от ${dd}.${mm}.${yy} ${hh}:${min}`;
+}
+
+function getDialogs() {
+  try {
+    const raw = localStorage.getItem("chat_dialogs");
+    if (!raw) return null;
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data.dialogs)) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function saveDialogs(data) {
+  try {
+    localStorage.setItem("chat_dialogs", JSON.stringify(data));
+  } catch {}
+}
+
+function currentDialog() {
+  const data = getDialogs();
+  if (!data) return null;
+  return data.dialogs.find((d) => d.id === data.current_dialog_id) || null;
+}
+
+function setCurrentDialog(id) {
+  const data = getDialogs() || { dialogs: [], current_dialog_id: null };
+  data.current_dialog_id = id;
+  saveDialogs(data);
+}
+
+function createDialog(name) {
+  const data = getDialogs() || { dialogs: [], current_dialog_id: null };
+  const d = {
+    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
+    name: name || generateDialogName(),
+    messages: [],
+    model: currentModelId || "",
+    system_prompt: ($("#s_prompt")?.value || "").trim(),
+    created_at: Date.now(),
+    updated_at: Date.now(),
+  };
+  data.dialogs.unshift(d);
+  data.current_dialog_id = d.id;
+  saveDialogs(data);
+  return d;
+}
+
+function switchDialog(id) {
+  const data = getDialogs();
+  if (!data) return;
+  const target = data.dialogs.find((d) => d.id === id);
+  if (!target) return;
+  data.current_dialog_id = id;
+  saveDialogs(data);
+  renderDialog(target);
+}
+
+function deleteDialog(id) {
+  const data = getDialogs();
+  if (!data) return;
+  const idx = data.dialogs.findIndex((d) => d.id === id);
+  if (idx < 0) return;
+  data.dialogs.splice(idx, 1);
+  if (data.dialogs.length === 0) {
+    data.dialogs.push(createDialog());
+  }
+  if (data.current_dialog_id === id) {
+    data.current_dialog_id = data.dialogs[0].id;
+  }
+  saveDialogs(data);
+  renderDialog(currentDialog());
+}
+
+function renameDialog(id, newName) {
+  const data = getDialogs();
+  if (!data) return;
+  const d = data.dialogs.find((d) => d.id === id);
+  if (!d) return;
+  d.name = newName.trim() || d.name;
+  d.updated_at = Date.now();
+  saveDialogs(data);
+  renderDialogsPanel();
+}
+
+function autoSaveCurrentDialog() {
+  const dialog = currentDialog();
+  if (!dialog) return;
+  const msgs = [];
+  box.querySelectorAll(".msg").forEach((el) => {
+    const role = el.classList.contains("user") ? "user" : "bot";
+    let text = "";
+    const md = el.querySelector(".md");
+    if (md) text = md.innerText || md.textContent;
+    else text = el.innerText || el.textContent;
+    const imgEl = el.querySelector("img");
+    msgs.push({
+      role,
+      content: text.replace("&#x27F3; перегенерировать", "").trim(),
+      image: imgEl ? imgEl.src : null,
+    });
+  });
+  dialog.messages = msgs;
+  dialog.model = currentModelId || dialog.model;
+  dialog.system_prompt = ($("#s_prompt")?.value || "").trim();
+  dialog.updated_at = Date.now();
+  const data = getDialogs();
+  if (!data) return;
+  const existing = data.dialogs.find((d) => d.id === dialog.id);
+  if (existing) {
+    existing.messages = dialog.messages;
+    existing.model = dialog.model;
+    existing.system_prompt = dialog.system_prompt;
+    existing.updated_at = existing.updated_at;
+  }
+  saveDialogs(data);
+}
+
+function renderDialog(dialog) {
+  if (!dialog) {
+    box.innerHTML = "";
+    updateEmptyState();
+    return;
+  }
+  box.innerHTML = "";
+  dialog.messages.forEach((m) => {
+    addHistoryMessage(m.role, m.content || "", m.image || null);
+  });
+  box.scrollTop = box.scrollHeight;
+  updateEmptyState();
+  currentModelId = dialog.model || currentModelId;
+  if ($("#s_prompt")) $("#s_prompt").value = dialog.system_prompt || "";
+}
+
+function renderDialogsPanel() {
+  const data = getDialogs();
+  const panel = $("#dialogsPanel_body");
+  if (!panel) return;
+  if (!data || !data.dialogs.length) {
+    panel.innerHTML = `<div style="color:var(--muted);text-align:center;padding:20px;">Нет диалогов</div>`;
+    return;
+  }
+  panel.innerHTML = "";
+  data.dialogs.forEach((d) => {
+    const item = document.createElement("div");
+    item.className = "dialog-item" + (d.id === (getDialogs()?.current_dialog_id) ? " active" : "");
+    const date = new Date(d.updated_at).toLocaleDateString("ru-RU", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    item.innerHTML = `
+      <div class="dialog-item-main" data-id="${d.id}">
+        <div class="dialog-item-name" title="Нажми, чтобы переименовать">${esc(d.name)}</div>
+        <div class="dialog-item-meta">${date} · ${d.messages.length} сообщ.</div>
+      </div>
+      <button class="dialog-item-del" data-del="${d.id}" title="Удалить">🗑</button>
+    `;
+    item.querySelector(".dialog-item-main").addEventListener("click", () => switchDialog(d.id));
+    item.querySelector(".dialog-item-name").addEventListener("dblclick", () => {
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = d.name;
+      inp.className = "dialog-rename-input";
+      const nameEl = item.querySelector(".dialog-item-name");
+      nameEl.replaceWith(inp);
+      inp.focus();
+      inp.select();
+      const finish = () => {
+        renameDialog(d.id, inp.value);
+      };
+      inp.addEventListener("blur", finish);
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") finish();
+        if (e.key === "Escape") renderDialogsPanel();
+      });
+    });
+    panel.appendChild(item);
+  });
+  document.querySelectorAll(".dialog-item-del").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.del;
+      if (confirm("Удалить диалог?")) deleteDialog(id);
+    });
+  });
+}
+
+function openDialogs() {
+  renderDialogsPanel();
+  $("#dialogsPanel").classList.add("open");
+  $("#dialogs").style.display = "";
+}
+
+function closeDialogs() {
+  $("#dialogsPanel").classList.remove("open");
+}
+
 // --- Markdown rendering (через marked + санитайзер) -------------------
 // marked грузится из /marked.min.js (тот же origin, без внешнего CDN).
 // marked умеет таблицы/списки/заголовки/зачёркивание(gfm)/картинки/код.
@@ -714,7 +924,8 @@ function addMessage(role, html, stats, scroll) {
   if (role === "bot") addCodeCopy(el);
   if (scroll !== false) box.scrollTop = box.scrollHeight;
   updateEmptyState();
-   
+  autoSaveCurrentDialog();
+
   return el;
 }
 
@@ -760,6 +971,7 @@ function addHistoryMessage(role, content, image) {
     html = content ? renderMarkdown(content) : imgHtml;
   }
   addMessage(role, html);
+  autoSaveCurrentDialog();
 }
 
 // --- Открыть веб/PWA-версию в браузере с передачей init_data ---
@@ -896,21 +1108,20 @@ async function auth(devId) {
     if (isAdmin) $("#s_admin").style.display = "inline-block";
     fillSettings(data.settings);
     setStatus("ok");
-    // Подгружаем историю диалога (чтобы пользователь видел то же, что и модель).
-    let histToLoad = Array.isArray(data.history) && data.history.length > 0 ? data.history : null;
-    if (!histToLoad) {
-      try {
-        const localHist = JSON.parse(localStorage.getItem("chat_history"));
-        if (Array.isArray(localHist)) histToLoad = localHist;
-      } catch {}
-    }
-    if (histToLoad) {
-      for (const m of histToLoad) {
-        addHistoryMessage(m.role, m.content || "", m.image || null);
+    const dialogs = getDialogs();
+    if (dialogs && dialogs.current_dialog_id) {
+      const dialog = dialogs.dialogs.find((d) => d.id === dialogs.current_dialog_id);
+      if (dialog) {
+        renderDialog(dialog);
+      } else {
+        createDialog();
+        renderDialog(currentDialog());
       }
-      box.scrollTop = box.scrollHeight;
+    } else {
+      createDialog();
+      renderDialog(currentDialog());
     }
-     
+
     log("модель: " + (data.settings.selected_model || "—"));
     // Показываем чат
     $("#messages").style.display = "";
@@ -1204,7 +1415,9 @@ $("#bar").addEventListener("submit", async (e) => { vibClick();
   if (sendBtn) sendBtn.classList.add("typing");
 
   try {
-    const res = await ef("chat", { message: text, image: imageToSend }, 300000);
+    const systemPromptToSend = ($("#s_prompt")?.value || "").trim();
+    const currentHist = currentDialog()?.messages || [];
+    const res = await ef("chat", { message: text, image: imageToSend, system_prompt: systemPromptToSend || undefined, history: currentHist }, 300000);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       addMessage("bot", escapeHtml(data.error || "ошибка " + res.status));
@@ -1701,7 +1914,7 @@ async function mbOpen() {
 }
 function mbClose() {
   $("#modelBrowser").classList.remove("open");
-   
+  $("#messages").style.display = "";
   $("#vision").style.display = "";
     updateEmptyState();
   $("#bar").style.display = "";
@@ -2290,12 +2503,9 @@ $("#cs_input").addEventListener("input", (e) =>
 $("#searchBtn").addEventListener("click", openChatSearch);
 
 $("#newChatBtn").addEventListener("click", async () => { vibClick();
-  if (!confirm("Начать новый диалог? История текущего чата будет удалена."))
-    return;
-  box.innerHTML = "";
-  updateEmptyState();
-   
-  localStorage.removeItem("chat_history");
+  autoSaveCurrentDialog();
+  createDialog();
+  renderDialog(currentDialog());
   try {
     await ef("chat", { clear: true });
   } catch {}
@@ -2476,6 +2686,12 @@ $("#gear").addEventListener("click", () => { vibClick();
   else openSettings();
 });
 
+$("#dialogsBtn").addEventListener("click", () => {
+  vibClick();
+  if ($("#dialogsPanel").classList.contains("open")) closeDialogs();
+  else openDialogs();
+});
+
 // --- Settings tabs ----------------------------------------------------
 document.querySelectorAll(".settings-tabs .stab").forEach((tab) => {
   tab.addEventListener("click", () => { vibClick();
@@ -2577,23 +2793,12 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
     if (id === "modelBrowser") mbClose();
     else if (id === "settings") closeSettings();
     else if (id === "chatSearch") closeChatSearch();
+    else if (id === "dialogsPanel") closeDialogs();
   });
 });
 
 function saveLocalHistory() {
-  const msgs = [];
-  box.querySelectorAll(".msg").forEach(el => {
-    const role = el.classList.contains("user") ? "user" : "bot";
-    let text = "";
-    const md = el.querySelector(".md");
-    if (md) text = md.innerText || md.textContent;
-    else text = el.innerText || el.textContent;
-    const imgEl = el.querySelector("img");
-    msgs.push({ role, content: text.replace("&#x27F3; перегенерировать", "").trim(), image: imgEl ? imgEl.src : null });
-  });
-  try {
-    localStorage.setItem("chat_history", JSON.stringify(msgs));
-  } catch {}
+  autoSaveCurrentDialog();
 }
 
  
