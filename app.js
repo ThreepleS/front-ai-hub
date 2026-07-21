@@ -593,7 +593,7 @@ function saveThemeToBackend(t) {
   } catch {}
 }
 
-document.getElementById("themeGrid").addEventListener("click", (e) => {
+document.getElementById("themeGrid").addEventListener("click", (e) => { vibClick();
   const card = e.target.closest(".theme-card");
   if (!card) return;
   const t = card.dataset.themeVal;
@@ -850,13 +850,10 @@ function fillSettings(s) {
   const vib = $("#s_vibrate");
   try {
     const ls = JSON.parse(localStorage.getItem("local_settings") || "{}");
-    if (sound) sound.checked = ls.notify_sound !== undefined ? ls.notify_sound : !!s.notify_sound;
     if (vib) vib.checked = ls.notify_vibrate !== undefined ? ls.notify_vibrate : !!s.notify_vibrate;
-    if (ls.notify_sound_id) selectedSoundId = ls.notify_sound_id;
     if (ls.vib_strength) $("#s_vib_strength").value = ls.vib_strength;
   } catch {}
   syncSegPickers();
-  buildSoundPicker();
   updateVibVal();
   checkVision();
 }
@@ -918,12 +915,11 @@ async function auth(devId) {
     // Показываем чат
     $("#messages").style.display = "";
     $("#bar").style.display = "";
-    $("#attach").style.display = "";
     $("#vision").style.display = "";
     updateEmptyState();
     if (data.needs_key) {
       log("⚠️ укажи API-ключ в настройках");
-      openSettings();
+      openSettings("keys");
     }
     return true;
   } catch (e) {
@@ -1112,6 +1108,7 @@ box.addEventListener("click", (e) => {
   if (inner) return;
   const msg = e.target.closest(".msg");
   if (!msg) return;
+  if (window.getSelection().toString().trim().length > 0) return;
   showCtx(e.clientX, e.clientY, msg);
 });
 ctxMenu.addEventListener("click", (e) => {
@@ -1185,7 +1182,7 @@ $("#lb_reply").addEventListener("click", async () => {
 });
 
 // --- Chat -------------------------------------------------------------
-$("#bar").addEventListener("submit", async (e) => {
+$("#bar").addEventListener("submit", async (e) => { vibClick();
   e.preventDefault();
   const input = $("#input");
   const text = input.value.trim();
@@ -1705,7 +1702,6 @@ async function mbOpen() {
 function mbClose() {
   $("#modelBrowser").classList.remove("open");
    
-  $("#attach").style.display = "";
   $("#vision").style.display = "";
     updateEmptyState();
   $("#bar").style.display = "";
@@ -1948,16 +1944,14 @@ $("#mb_detail").addEventListener("click", async (e) => {
 });
 
 // --- Settings save / clear -------------------------------------------
-$("#s_save").addEventListener("click", async () => {
+$("#s_save").addEventListener("click", async () => { vibClick();
   const status = $("#s_status");
   status.textContent = "";
   const contextLimit = $("#s_limit").value;
   const statsDisplay = $("#s_stats").value;
   try {
     localStorage.setItem("local_settings", JSON.stringify({
-      notify_sound: $("#s_sound") ? $("#s_sound").checked : false,
       notify_vibrate: $("#s_vibrate") ? $("#s_vibrate").checked : false,
-      notify_sound_id: selectedSoundId,
       vib_strength: getVibStrength()
     }));
     if (["monochrome", "hacker", "candy"].includes(theme) || ["nord", "synthwave"].includes(theme)) {
@@ -1972,9 +1966,7 @@ $("#s_save").addEventListener("click", async () => {
     context_limit: contextLimit,
     stats_display: statsDisplay,
     theme: ["monochrome", "hacker", "candy"].includes(theme) || ["nord", "synthwave"].includes(theme) ? "dark" : theme,
-    notify_sound: $("#s_sound") ? $("#s_sound").checked : false,
     notify_vibrate: $("#s_vibrate") ? $("#s_vibrate").checked : false,
-    notify_sound_id: selectedSoundId,
     vib_strength: getVibStrength(),
   });
   payload.provider_keys = collectProviderKeys();
@@ -1999,7 +1991,7 @@ $("#s_save").addEventListener("click", async () => {
 });
 
 document.querySelectorAll(".seg-picker").forEach((picker) => {
-  picker.addEventListener("click", (e) => {
+  picker.addEventListener("click", (e) => { vibClick();
     const btn = e.target.closest(".seg-btn");
     if (!btn) return;
     picker.dataset.value = btn.dataset.val;
@@ -2297,7 +2289,7 @@ $("#cs_input").addEventListener("input", (e) =>
 );
 $("#searchBtn").addEventListener("click", openChatSearch);
 
-$("#newChatBtn").addEventListener("click", async () => {
+$("#newChatBtn").addEventListener("click", async () => { vibClick();
   if (!confirm("Начать новый диалог? История текущего чата будет удалена."))
     return;
   box.innerHTML = "";
@@ -2311,65 +2303,19 @@ $("#newChatBtn").addEventListener("click", async () => {
 });
 
 // --- Sound / Vibration -------------------------------------------------
-const SOUNDS = [
-  { id: "chime", name: "Колокольчик", type: "sine", freq: 880, dur: 0.15 },
-  { id: "ding", name: "Дзинь", type: "sine", freq: 1200, dur: 0.1 },
-  { id: "pop", name: "Капля", type: "square", freq: 400, dur: 0.08 },
-  { id: "blip", name: "Щелчок", type: "triangle", freq: 600, dur: 0.06 },
-  { id: "click", name: "Тик", type: "triangle", freq: 1000, dur: 0.04 },
-  { id: "chord", name: "Аккорд", type: "sine", freq: 523, dur: 0.3 },
-  { id: "ping", name: "Пик", type: "sine", freq: 1500, dur: 0.05 },
-  { id: "alert", name: "Тревога", type: "sawtooth", freq: 440, dur: 0.2 },
-  { id: "gentle", name: "Шёпот", type: "sine", freq: 660, dur: 0.25 },
-  { id: "crystal", name: "Хрусталь", type: "sine", freq: 2000, dur: 0.08 },
-];
-let selectedSoundId = "chime";
-function buildSoundPicker() {
-  const wrap = $("#soundPicker");
-  if (!wrap) return;
-  wrap.innerHTML = "";
-  SOUNDS.forEach((s) => {
-    const btn = document.createElement("button");
-    btn.className = "sound-chip" + (s.id === selectedSoundId ? " active" : "");
-    btn.textContent = s.name;
-    btn.addEventListener("click", () => {
-      selectedSoundId = s.id;
-      wrap
-        .querySelectorAll(".sound-chip")
-        .forEach((c) => c.classList.remove("active"));
-      btn.classList.add("active");
-      playSelectedSound();
-    });
-    wrap.appendChild(btn);
-  });
-}
-function playSelectedSound() {
-  const s = SOUNDS.find((x) => x.id === selectedSoundId) || SOUNDS[0];
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = s.freq;
-    osc.type = s.type;
-    gain.gain.value = 0.08;
-    osc.start();
-    osc.stop(ctx.currentTime + s.dur);
-  } catch {}
-}
 function getVibStrength() {
   const el = $("#s_vib_strength");
   const val = el ? parseInt(el.value, 10) : 40;
   return Math.max(10, Math.min(200, val || 40));
 }
 function notify() {
-  const sound = $("#s_sound");
   const vib = $("#s_vibrate");
-  const doSound = sound ? sound.checked : false;
   const doVib = vib ? vib.checked : false;
-  if (doSound) playSelectedSound();
   if (doVib && navigator.vibrate) navigator.vibrate(getVibStrength());
+}
+function vibClick() {
+  const vib = $("#s_vibrate");
+  if (vib && vib.checked && navigator.vibrate) navigator.vibrate(10);
 }
 function syncSegPickers() {
   document.querySelectorAll(".seg-picker").forEach((picker) => {
@@ -2497,7 +2443,7 @@ $("#s_pwa").addEventListener("click", async () => {
 });
 
 // --- Gear / dev login ------------------------------------------------
-function openSettings() {
+function openSettings(tab = null) {
   mbClose();
   $("#settings").classList.add("open");
   $("#messages").style.display = "none";
@@ -2505,27 +2451,34 @@ function openSettings() {
   $("#attach").style.display = "none";
   $("#vision").style.display = "none";
   $("#bar").style.display = "none";
-  buildSoundPicker();
   syncSegPickers();
   updateVibVal();
   loadKeyInfo();
+  if (tab) {
+    document.querySelectorAll(".stab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+    const stab = document.querySelector(`.stab[data-tab="${tab}"]`);
+    if (stab) stab.classList.add("active");
+    const content = document.querySelector(`.tab-content[data-content="${tab}"]`);
+    if (content) content.classList.add("active");
+  }
 }
 function closeSettings() {
   $("#settings").classList.remove("open");
-   
+  $("#messages").style.display = "";
   $("#attach").style.display = "";
   $("#vision").style.display = "";
-    updateEmptyState();
   $("#bar").style.display = "";
+  updateEmptyState();
 }
-$("#gear").addEventListener("click", () => {
+$("#gear").addEventListener("click", () => { vibClick();
   if ($("#settings").classList.contains("open")) closeSettings();
   else openSettings();
 });
 
 // --- Settings tabs ----------------------------------------------------
 document.querySelectorAll(".settings-tabs .stab").forEach((tab) => {
-  tab.addEventListener("click", () => {
+  tab.addEventListener("click", () => { vibClick();
     document
       .querySelectorAll(".settings-tabs .stab")
       .forEach((t) => t.classList.remove("active"));
@@ -2626,7 +2579,7 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
     else if (id === "chatSearch") closeChatSearch();
   });
 });
-
+-e 
 function saveLocalHistory() {
   const msgs = [];
   box.querySelectorAll(".msg").forEach(el => {
@@ -2642,3 +2595,5 @@ function saveLocalHistory() {
     localStorage.setItem("chat_history", JSON.stringify(msgs));
   } catch {}
 }
+-e 
+ 

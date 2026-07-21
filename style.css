@@ -1,4 +1,5 @@
 :root {
+  --btn-text: #fff;
   --bg: #0b0f1a;
   --bg-2: #0e1424;
   --panel: rgba(22, 30, 48, 0.72);
@@ -553,7 +554,7 @@ header {
     var(--accent),
     color-mix(in srgb, var(--accent) 70%, #000)
   );
-  color: #fff;
+  color: var(--btn-text);
   border-bottom-right-radius: 5px;
 }
 .msg.bot {
@@ -892,7 +893,8 @@ header {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
 }
-#bar input {
+#bar input,
+#bar textarea {
   flex: 1;
   border: 0;
   background: transparent;
@@ -902,8 +904,12 @@ header {
   outline: none;
   font-size: 15px;
   line-height: 1.35;
+  resize: none;
+  min-height: unset;
+  box-shadow: none;
 }
-#bar input::placeholder {
+#bar input::placeholder,
+#bar textarea::placeholder {
   color: var(--muted);
 }
 .cbtn {
@@ -941,7 +947,7 @@ header {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--btn-text);
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent);
   transition:
@@ -1122,7 +1128,8 @@ textarea {
   align-items: center;
 }
 .pkrow input {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
 }
 .pkstatus {
   font-size: 11px;
@@ -1164,7 +1171,7 @@ textarea {
 }
 .btn.primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
+  color: var(--btn-text);
   box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 .btn.ghost {
@@ -1367,7 +1374,7 @@ textarea {
   border: 0;
   border-radius: 14px;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
-  color: #fff;
+  color: var(--btn-text);
   font-weight: 700;
   font-size: 14px;
   cursor: pointer;
@@ -1579,6 +1586,7 @@ textarea {
   transform: translateY(-1px);
 }
 #lightbox .lb-actions .lb-reply {
+  color: var(--btn-text) !important;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   border: 0;
 }
@@ -1645,7 +1653,7 @@ textarea {
 /* ---------- Theme Picker ---------- */
 .theme-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
   gap: 10px;
 }
 .theme-card {
@@ -1913,6 +1921,11 @@ textarea {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
+}
+.tpl-actions {
+  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
 }
 .tpl-head .tpl-actions {
@@ -2278,6 +2291,7 @@ textarea {
   --stroke: rgba(255, 255, 255, 0.2);
   --stroke-strong: rgba(255, 255, 255, 0.5);
   --accent: #fff;
+  --btn-text: #000;
   --accent-2: #ddd;
   --accent-3: #aaa;
   --text: #fff;
