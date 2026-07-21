@@ -2579,7 +2579,7 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
     else if (id === "chatSearch") closeChatSearch();
   });
 });
--e 
+
 function saveLocalHistory() {
   const msgs = [];
   box.querySelectorAll(".msg").forEach(el => {
@@ -2595,5 +2595,5 @@ function saveLocalHistory() {
     localStorage.setItem("chat_history", JSON.stringify(msgs));
   } catch {}
 }
--e 
+
  
