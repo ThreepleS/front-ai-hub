@@ -1127,7 +1127,7 @@ textarea {
 .pkstatus {
   font-size: 11px;
   color: var(--muted);
-  min-width: 96px;
+  white-space: nowrap; flex: 0 0 auto;
   text-align: right;
 }
 .provkeys {
@@ -2180,54 +2180,42 @@ textarea {
 .search-highlight-frame {
   position: relative;
   z-index: 10;
-  outline: 3px solid #fff;
-  outline-offset: 4px;
-  border-radius: 18px;
-  box-shadow:
-    0 0 0 6px rgba(0, 0, 0, 0.85),
-    0 0 30px rgba(0, 0, 0, 0.5);
-  animation: searchFramePulse 0.9s ease-out forwards;
+  animation: searchFramePulse 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 @keyframes searchFramePulse {
   0% {
-    outline-width: 18px;
-    outline-offset: 18px;
-    box-shadow:
-      0 0 0 20px rgba(0, 0, 0, 0.9),
-      0 0 60px rgba(0, 0, 0, 0.7);
+    transform: scale(1.05);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    border-radius: 18px;
   }
   100% {
-    outline-width: 3px;
-    outline-offset: 4px;
-    box-shadow:
-      0 0 0 6px rgba(0, 0, 0, 0.85),
-      0 0 30px rgba(0, 0, 0, 0.5);
+    transform: scale(1);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0);
+    border-radius: inherit;
   }
 }
 .search-highlight-term {
-  background: rgba(255, 255, 255, 0.35);
+  background: #fff;
   color: #000;
-  border-radius: 3px;
-  padding: 1px 3px;
+  border-radius: 4px;
+  padding: 0 4px;
   font-weight: 700;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  border: 1px solid #000;
+  transition: all 0.3s ease;
 }
 .search-faded .search-highlight-term {
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--text);
-  box-shadow: none;
+  background: transparent;
+  color: inherit;
+  border-color: rgba(255, 255, 255, 0.2);
+  opacity: 0.7;
 }
 .search-faded .search-highlight-frame {
-  outline-color: rgba(255, 255, 255, 0.25);
-  box-shadow:
-    0 0 0 3px rgba(0, 0, 0, 0.3),
-    0 0 10px rgba(0, 0, 0, 0.2);
+  animation: none;
 }
 
 .hidden {
   display: none !important;
 }
--e 
 [data-theme="light"] .msg.md pre {
   background: #f1f5fb;
   border: 1px solid var(--stroke-strong);
@@ -2247,13 +2235,11 @@ textarea {
 [data-theme="sunset"] .msg code {
   background: rgba(0, 0, 0, 0.5);
 }
--e 
 [data-theme="light"] .msg.md pre .copy-btn {
   background: rgba(20, 40, 80, 0.1);
   border-color: rgba(20, 40, 80, 0.15);
   color: #14223c;
 }
--e 
 .custom-editor {
   display: flex;
   flex-direction: column;
@@ -2264,7 +2250,6 @@ textarea {
   border-radius: 12px;
   border: 1px solid var(--stroke);
 }
--e 
 .msg.md table {
   width: 100%;
   border-collapse: collapse;
@@ -2280,25 +2265,23 @@ textarea {
   background: color-mix(in srgb, var(--panel) 50%, transparent);
   font-weight: 600;
 }
--e 
 .settings-bottom-bar {
   padding-bottom: env(safe-area-inset-bottom);
   border-top: 1px solid var(--stroke);
 }
--e 
 [data-theme="monochrome"] {
-  --bg: #111;
-  --bg-2: #222;
-  --panel: rgba(30, 30, 30, 0.8);
-  --panel-solid: #1e1e1e;
-  --glass: rgba(50, 50, 50, 0.6);
-  --stroke: rgba(255, 255, 255, 0.1);
-  --stroke-strong: rgba(255, 255, 255, 0.3);
+  --bg: #000;
+  --bg-2: #050505;
+  --panel: rgba(15, 15, 15, 0.9);
+  --panel-solid: #0f0f0f;
+  --glass: rgba(255, 255, 255, 0.05);
+  --stroke: rgba(255, 255, 255, 0.2);
+  --stroke-strong: rgba(255, 255, 255, 0.5);
   --accent: #fff;
-  --accent-2: #ccc;
-  --accent-3: #999;
-  --text: #eee;
-  --muted: #888;
+  --accent-2: #ddd;
+  --accent-3: #aaa;
+  --text: #fff;
+  --muted: #777;
 }
 [data-theme="hacker"] {
   --bg: #000;
@@ -2328,7 +2311,34 @@ textarea {
   --text: #8b008b;
   --muted: #db7093;
 }
--e 
+[data-theme="nord"] {
+  --bg: #2e3440;
+  --bg-2: #3b4252;
+  --panel: rgba(67, 76, 94, 0.85);
+  --panel-solid: #434c5e;
+  --glass: rgba(76, 86, 106, 0.6);
+  --stroke: rgba(216, 222, 233, 0.15);
+  --stroke-strong: rgba(216, 222, 233, 0.3);
+  --accent: #88c0d0;
+  --accent-2: #81a1c1;
+  --accent-3: #5e81ac;
+  --text: #eceff4;
+  --muted: #d8dee9;
+}
+[data-theme="synthwave"] {
+  --bg: #2b213a;
+  --bg-2: #241b2f;
+  --panel: rgba(38, 35, 53, 0.85);
+  --panel-solid: #262335;
+  --glass: rgba(255, 126, 219, 0.1);
+  --stroke: rgba(255, 126, 219, 0.25);
+  --stroke-strong: rgba(54, 249, 246, 0.4);
+  --accent: #ff7edb;
+  --accent-2: #36f9f6;
+  --accent-3: #f97e72;
+  --text: #ffffff;
+  --muted: #b9aed0;
+}
 .range-container {
   display: flex;
   align-items: center;

@@ -535,6 +535,8 @@ const THEME_PRESETS = {
   monochrome: {},
   hacker: {},
   candy: {},
+  nord: {},
+  synthwave: {},
 };
 function applyTheme(t) {
   document.documentElement.setAttribute("data-theme", t || "dark");
@@ -668,11 +670,15 @@ function loadCustomThemeEditor() {
 
 // --- Status dot & empty state ---------------------------------------------------
 function updateEmptyState() {
-  const es = document.getElementById("emptyState");
-  if (!es) return;
-  const isEmpty = box.children.length === 0;
-  es.style.display = isEmpty ? "flex" : "none";
-  box.style.display = isEmpty ? "none" : "flex";
+  const isEmpty = box.querySelectorAll(".msg").length === 0;
+  if (isEmpty) {
+    if (!box.querySelector(".empty-state")) {
+      box.innerHTML = `<div class="empty-state" style="margin: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><div><b style="font-size: 16px; color: var(--text);">Начни диалог</b><br/>напиши что-нибудь внизу</div></div>`;
+    }
+  } else {
+    const es = box.querySelector(".empty-state");
+    if (es) es.remove();
+  }
 }
 function setStatus(state) {
   const dot = document.getElementById("statusDot");
@@ -708,6 +714,7 @@ function addMessage(role, html, stats, scroll) {
   if (role === "bot") addCodeCopy(el);
   if (scroll !== false) box.scrollTop = box.scrollHeight;
   updateEmptyState();
+   
   return el;
 }
 
@@ -831,14 +838,23 @@ function fillSettings(s) {
   $("#s_stats").value = s.stats_display || "full";
   if (s.theme) {
     theme = s.theme;
+    try {
+      const override = localStorage.getItem("local_theme_override");
+      if (override && ["monochrome", "hacker", "candy"].includes(override) || ["nord", "synthwave"].includes(override)) {
+        theme = override;
+      }
+    } catch {}
     applyTheme(theme);
   }
   const sound = $("#s_sound");
   const vib = $("#s_vibrate");
-  if (sound) sound.checked = !!s.notify_sound;
-  if (vib) vib.checked = !!s.notify_vibrate;
-  if (s.notify_sound_id) selectedSoundId = s.notify_sound_id;
-  if (s.vib_strength) $("#s_vib_strength").value = s.vib_strength;
+  try {
+    const ls = JSON.parse(localStorage.getItem("local_settings") || "{}");
+    if (sound) sound.checked = ls.notify_sound !== undefined ? ls.notify_sound : !!s.notify_sound;
+    if (vib) vib.checked = ls.notify_vibrate !== undefined ? ls.notify_vibrate : !!s.notify_vibrate;
+    if (ls.notify_sound_id) selectedSoundId = ls.notify_sound_id;
+    if (ls.vib_strength) $("#s_vib_strength").value = ls.vib_strength;
+  } catch {}
   syncSegPickers();
   buildSoundPicker();
   updateVibVal();
@@ -884,19 +900,27 @@ async function auth(devId) {
     fillSettings(data.settings);
     setStatus("ok");
     // Подгружаем историю диалога (чтобы пользователь видел то же, что и модель).
-    if (Array.isArray(data.history)) {
-      for (const m of data.history) {
+    let histToLoad = Array.isArray(data.history) && data.history.length > 0 ? data.history : null;
+    if (!histToLoad) {
+      try {
+        const localHist = JSON.parse(localStorage.getItem("chat_history"));
+        if (Array.isArray(localHist)) histToLoad = localHist;
+      } catch {}
+    }
+    if (histToLoad) {
+      for (const m of histToLoad) {
         addHistoryMessage(m.role, m.content || "", m.image || null);
       }
       box.scrollTop = box.scrollHeight;
     }
-    updateEmptyState();
+     
     log("модель: " + (data.settings.selected_model || "—"));
     // Показываем чат
     $("#messages").style.display = "";
     $("#bar").style.display = "";
     $("#attach").style.display = "";
     $("#vision").style.display = "";
+    updateEmptyState();
     if (data.needs_key) {
       log("⚠️ укажи API-ключ в настройках");
       openSettings();
@@ -914,6 +938,7 @@ const PROVIDERS = ["openrouter", "gemini", "venice"];
 function buildKeyRows() {
   const box = $("#s_keys");
   box.innerHTML = "";
+  updateEmptyState();
   PROVIDERS.forEach((p) => {
     const row = document.createElement("div");
     row.className = "pkrow";
@@ -1082,25 +1107,12 @@ document.addEventListener("contextmenu", (e) => {
   e.preventDefault();
   showCtx(e.clientX, e.clientY, msg);
 });
-let longTimer = null;
-box.addEventListener(
-  "touchstart",
-  (e) => {
-    const msg = e.target.closest(".msg");
-    if (!msg) return;
-    longTimer = setTimeout(() => {
-      const t = e.touches[0];
-      showCtx(t.clientX, t.clientY, msg);
-      if (navigator.vibrate) navigator.vibrate(25);
-    }, 500);
-  },
-  { passive: true },
-);
-box.addEventListener("touchend", () => {
-  clearTimeout(longTimer);
-});
-box.addEventListener("touchmove", () => {
-  clearTimeout(longTimer);
+box.addEventListener("click", (e) => {
+  const inner = e.target.closest("button, a, code, pre");
+  if (inner) return;
+  const msg = e.target.closest(".msg");
+  if (!msg) return;
+  showCtx(e.clientX, e.clientY, msg);
 });
 ctxMenu.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
@@ -1122,9 +1134,20 @@ ctxMenu.addEventListener("click", (e) => {
       $("#input").value = "> " + text.split("\n").join("\n> ") + "\n";
       $("#input").focus();
     }
+  } else if (act === "regen") {
+    let prev = ctxMsgEl.previousElementSibling;
+    while (prev && !prev.classList.contains("user")) {
+      prev = prev.previousElementSibling;
+    }
+    const text = prev ? (prev.innerText || prev.textContent).trim() : lastUserMessage;
+    if (text) {
+      $("#input").value = text;
+      $("#bar").dispatchEvent(new Event("submit"));
+    }
   } else if (act === "delete") {
     ctxMsgEl.remove();
     updateEmptyState();
+     
     toast("Удалено", "ok");
   }
   hideCtx();
@@ -1253,6 +1276,7 @@ $("#bar").addEventListener("submit", async (e) => {
     notify();
   } finally {
     if (sendBtn) sendBtn.classList.remove("typing");
+    saveLocalHistory();
   }
 });
 
@@ -1680,9 +1704,10 @@ async function mbOpen() {
 }
 function mbClose() {
   $("#modelBrowser").classList.remove("open");
-  updateEmptyState();
+   
   $("#attach").style.display = "";
   $("#vision").style.display = "";
+    updateEmptyState();
   $("#bar").style.display = "";
 }
 async function mbSelect(id) {
@@ -1923,34 +1948,30 @@ $("#mb_detail").addEventListener("click", async (e) => {
 });
 
 // --- Settings save / clear -------------------------------------------
-if ($("#s_check_keys")) {
-  $("#s_check_keys").addEventListener("click", async () => {
-    const btn = $("#s_check_keys");
-    btn.textContent = "Проверяем...";
-    btn.disabled = true;
-    try {
-      await loadKeyInfo();
-      toast("Ключи проверены", "ok");
-    } catch (e) {
-      toast("Ошибка", "err");
-    } finally {
-      btn.textContent = "Проверить";
-      btn.disabled = false;
-    }
-  });
-}
-
 $("#s_save").addEventListener("click", async () => {
   const status = $("#s_status");
   status.textContent = "";
   const contextLimit = $("#s_limit").value;
   const statsDisplay = $("#s_stats").value;
+  try {
+    localStorage.setItem("local_settings", JSON.stringify({
+      notify_sound: $("#s_sound") ? $("#s_sound").checked : false,
+      notify_vibrate: $("#s_vibrate") ? $("#s_vibrate").checked : false,
+      notify_sound_id: selectedSoundId,
+      vib_strength: getVibStrength()
+    }));
+    if (["monochrome", "hacker", "candy"].includes(theme) || ["nord", "synthwave"].includes(theme)) {
+      localStorage.setItem("local_theme_override", theme);
+    } else {
+      localStorage.removeItem("local_theme_override");
+    }
+  } catch {}
   const payload = Object.assign(authBody(), {
     selected_model: currentModelId,
     system_prompt: $("#s_prompt").value,
     context_limit: contextLimit,
     stats_display: statsDisplay,
-    theme: theme,
+    theme: ["monochrome", "hacker", "candy"].includes(theme) || ["nord", "synthwave"].includes(theme) ? "dark" : theme,
     notify_sound: $("#s_sound") ? $("#s_sound").checked : false,
     notify_vibrate: $("#s_vibrate") ? $("#s_vibrate").checked : false,
     notify_sound_id: selectedSoundId,
@@ -2276,11 +2297,16 @@ $("#cs_input").addEventListener("input", (e) =>
 );
 $("#searchBtn").addEventListener("click", openChatSearch);
 
-$("#newChatBtn").addEventListener("click", () => {
+$("#newChatBtn").addEventListener("click", async () => {
   if (!confirm("Начать новый диалог? История текущего чата будет удалена."))
     return;
   box.innerHTML = "";
   updateEmptyState();
+   
+  localStorage.removeItem("chat_history");
+  try {
+    await ef("chat", { clear: true });
+  } catch {}
   toast("Новый диалог начат", "ok");
 });
 
@@ -2486,9 +2512,10 @@ function openSettings() {
 }
 function closeSettings() {
   $("#settings").classList.remove("open");
-  updateEmptyState();
+   
   $("#attach").style.display = "";
   $("#vision").style.display = "";
+    updateEmptyState();
   $("#bar").style.display = "";
 }
 $("#gear").addEventListener("click", () => {
@@ -2599,3 +2626,21 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
     else if (id === "chatSearch") closeChatSearch();
   });
 });
+-e 
+function saveLocalHistory() {
+  const msgs = [];
+  box.querySelectorAll(".msg").forEach(el => {
+    const role = el.classList.contains("user") ? "user" : "bot";
+    let text = "";
+    const md = el.querySelector(".md");
+    if (md) text = md.innerText || md.textContent;
+    else text = el.innerText || el.textContent;
+    const imgEl = el.querySelector("img");
+    msgs.push({ role, content: text.replace("&#x27F3; перегенерировать", "").trim(), image: imgEl ? imgEl.src : null });
+  });
+  try {
+    localStorage.setItem("chat_history", JSON.stringify(msgs));
+  } catch {}
+}
+-e 
+ 

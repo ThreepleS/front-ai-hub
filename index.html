@@ -177,7 +177,37 @@
                   style="background: linear-gradient(135deg, #ffe6f0, #ffb6c1)"
                 ></div>
                 <div class="tname">Кэнди</div>
+              <div class="theme-card" data-theme-val="nord">
+                <div class="theme-preview" style="background: linear-gradient(135deg, #2e3440, #88c0d0)"></div>
+                <div class="tname">Норд</div>
+                <div class="tdesc">Сканди</div>
+              </div>
+              <div class="theme-card" data-theme-val="synthwave">
+                <div class="theme-preview" style="background: linear-gradient(135deg, #2b213a, #ff7edb)"></div>
+                <div class="tname">Синт</div>
+                <div class="tdesc">Ретро</div>
+              </div>
                 <div class="tdesc">Sweet pink</div>
+              <div class="theme-card" data-theme-val="nord">
+                <div class="theme-preview" style="background: linear-gradient(135deg, #2e3440, #88c0d0)"></div>
+                <div class="tname">Норд</div>
+                <div class="tdesc">Сканди</div>
+              </div>
+              <div class="theme-card" data-theme-val="synthwave">
+                <div class="theme-preview" style="background: linear-gradient(135deg, #2b213a, #ff7edb)"></div>
+                <div class="tname">Синт</div>
+                <div class="tdesc">Ретро</div>
+              </div>
+              </div>
+              <div class="theme-card" data-theme-val="nord">
+                <div class="theme-preview" style="background: linear-gradient(135deg, #2e3440, #88c0d0)"></div>
+                <div class="tname">Норд</div>
+                <div class="tdesc">Сканди</div>
+              </div>
+              <div class="theme-card" data-theme-val="synthwave">
+                <div class="theme-preview" style="background: linear-gradient(135deg, #2b213a, #ff7edb)"></div>
+                <div class="tname">Синт</div>
+                <div class="tdesc">Ретро</div>
               </div>
               <div class="theme-card" data-theme-val="custom">
                 <div
@@ -278,7 +308,6 @@
                 </div>
               </div>
               <div id="s_keys" class="provkeys"></div>
-              <button id="s_check_keys" class="btn sm ghost" style="margin-top: 12px; width: 100%; justify-content: center;" type="button">Проверить</button>
             </div>
           </div>
 
@@ -304,22 +333,23 @@
                   <span class="toggle-label">📳 Вибрация</span>
                 </label>
               </div>
+              <div id="soundPicker" class="sound-picker" style="margin-top: 12px;"></div>
             </div>
           </div>
 
           <div class="tab-content" data-content="more">
             <div class="settings-card">
-              <div class="settings-card-head">
+              <div class="settings-card-head" style="align-items: center; justify-content: space-between;">
                 <div>
                   <div class="section-title">Лимит контекста</div>
                   <div class="settings-card-desc">
                     Сколько последних сообщений помнить.
                   </div>
                 </div>
+                <div class="range-val" id="limitVal" style="background: var(--glass); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--stroke); font-weight: bold;">10</div>
               </div>
               <div class="range-container">
                 <input type="range" id="s_limit_slider" min="1" max="100" value="10" />
-                <div class="range-val" id="limitVal">10</div>
               </div>
               <input type="hidden" id="s_limit" value="10" />
             </div>
@@ -508,22 +538,6 @@
       </div>
     </div>
 
-    <div id="emptyState" class="empty-state" style="display: none">
-      <svg
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <path
-          d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
-        ></path>
-      </svg>
-      <b>Начни диалог</b>
-      <span>Выбери модель в браузере и напиши сообщение</span>
-    </div>
 
     <div id="messages"></div>
 
@@ -543,6 +557,7 @@
 
     <div id="ctxMenu">
       <button data-act="copy">📋 Копировать</button>
+      <button data-act="regen">🔄 Сгенерировать заново</button>
       <button data-act="reply">↩️ Ответить</button>
       <button data-act="delete" class="danger">🗑 Удалить</button>
     </div>
