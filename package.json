@@ -1,0 +1,20 @@
+{
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.6",
+    "typescript": "^7.0.2",
+    "vite": "^8.1.5"
+  },
+  "type": "module", "name": "applet",
+  "version": "1.0.0",
+  "description": "Статический фронтенд для Telegram WebApp / PWA. Бэкенд (чат-API, ключи, БД) крутится отдельно на локальном сервере и доступен через туннель (ngrok / cloudflared). Этот репозиторий содержит ТОЛЬКО публичные файлы (HTML/JS/CSS/иконки), никаких секретов здесь нет.",
+  "main": "admin.js",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

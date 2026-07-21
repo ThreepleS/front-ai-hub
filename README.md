@@ -1,11 +1,21 @@
-<div align="center">
+# AI App — фронтенд (GitHub Pages)
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Статический фронтенд для Telegram WebApp / PWA. Бэкенд (чат-API, ключи, БД)
+крутится отдельно на локальном сервере и доступен через туннель (ngrok /
+cloudflared). Этот репозиторий содержит ТОЛЬКО публичные файлы (HTML/JS/CSS/иконки),
+никаких секретов здесь нет.
 
-  <h1>Built with AI Studio</h2>
+## Как фронт находит бэкенд
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+Базовый URL API задаётся одним из способов (в браузере пользователя):
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+1. Параметр в URL: `https://USER.github.io/REPO/?api=https://ТУННЕЛ`
+2. `localStorage["api_base"]` (сохраняется после первого `?api=`)
+3. Пусто — относительный путь (если фронт и API на одном домене)
 
-</div>
+То есть: фронт с github.io, API с твоего туннеля. CORS на сервере разрешает
+кросс-доменные запросы.
+
+## Деплой
+
+См. `../deploy-ghpages.ps1` в корне проекта (запускать после `gh auth login`).

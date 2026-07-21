@@ -1,0 +1,572 @@
+﻿<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="theme-color" content="#0b0f1a" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>AI App</title>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Markdown: marked (тот же origin, без внешнего CDN) -->
+    <script src="marked.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <div style="flex: 1"></div>
+      <button
+        id="models"
+        class="hbtn"
+        title="Браузер моделей"
+        aria-label="Браузер моделей"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+        </svg>
+      </button>
+      <button
+        id="newChatBtn"
+        class="hbtn"
+        title="Начать новый диалог"
+        aria-label="Начать новый диалог"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 5v14M5 12h14"></path>
+        </svg>
+      </button>
+      <button
+        id="searchBtn"
+        class="hbtn"
+        title="Поиск по чату"
+        aria-label="Поиск по чату"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+      </button>
+      <button id="gear" class="hbtn" title="Настройки" aria-label="Настройки">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="12" cy="12" r="3"></circle>
+          <path
+            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.31.48.5.91.51H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+          ></path>
+        </svg>
+      </button>
+    </header>
+
+    <div id="devbar" style="display: none">
+      <small
+        >Локальный режим (WEB_APP_DEV). Данные администратора подтягиваются
+        автоматически с вашего устройства.</small
+      >
+    </div>
+
+    <div id="settings" class="overlay">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="grip"></span>
+          <b>⚙ Настройки</b>
+          <button class="close" data-close="settings" title="Закрыть">✕</button>
+        </div>
+        <div class="panel-body">
+          <div class="tab-content active" data-content="theme">
+            <div class="theme-grid" id="themeGrid">
+              <div class="theme-card active" data-theme-val="dark">
+                <div
+                  class="theme-preview"
+                  style="background: linear-gradient(135deg, #0b0f1a, #1a2040)"
+                ></div>
+                <div class="tname">Тёмная</div>
+                <div class="tdesc">Deep navy</div>
+              </div>
+              <div class="theme-card" data-theme-val="light">
+                <div
+                  class="theme-preview"
+                  style="background: linear-gradient(135deg, #eef2f9, #ffffff)"
+                ></div>
+                <div class="tname">Светлая</div>
+                <div class="tdesc">Clean white</div>
+              </div>
+              <div class="theme-card" data-theme-val="midnight">
+                <div
+                  class="theme-preview"
+                  style="background: linear-gradient(135deg, #05070a, #0a1a20)"
+                ></div>
+                <div class="tname">Полночь</div>
+                <div class="tdesc">Deep teal</div>
+              </div>
+              <div class="theme-card" data-theme-val="aurora">
+                <div
+                  class="theme-preview"
+                  style="background: linear-gradient(135deg, #0a0a14, #2a1050)"
+                ></div>
+                <div class="tname">Аврора</div>
+                <div class="tdesc">Purple green</div>
+              </div>
+              <div class="theme-card" data-theme-val="sunset">
+                <div
+                  class="theme-preview"
+                  style="background: linear-gradient(135deg, #140a0a, #3a1020)"
+                ></div>
+                <div class="tname">Закат</div>
+                <div class="tdesc">Warm orange</div>
+              </div>
+              <div class="theme-card" data-theme-val="custom">
+                <div
+                  class="theme-preview"
+                  style="
+                    background: conic-gradient(
+                      #4f8cff,
+                      #9b5cff,
+                      #21d4c4,
+                      #4f8cff
+                    );
+                  "
+                ></div>
+                <div class="tname">Своя</div>
+                <div class="tdesc">Custom</div>
+              </div>
+            </div>
+            <div
+              id="customThemeEditor"
+              class="custom-editor"
+              style="display: none"
+            >
+              <div class="section-title">Цвета пользовательской темы</div>
+              <div class="custom-theme-row">
+                <label>Фон</label
+                ><input type="color" id="ct_bg" value="#0b0f1a" />
+                <label>Панель</label
+                ><input type="color" id="ct_panel" value="#161e30" />
+                <label>Акцент</label
+                ><input type="color" id="ct_accent" value="#4f8cff" />
+                <label>Текст</label
+                ><input type="color" id="ct_text" value="#eaf0fb" />
+              </div>
+              <button id="ct_save" class="btn primary sm" type="button">
+                Сохранить тему
+              </button>
+            </div>
+          </div>
+
+          <div class="tab-content" data-content="prompts">
+            <div class="settings-card">
+              <div class="settings-card-head">
+                <div>
+                  <div class="section-title">Системный промпт</div>
+                  <div class="settings-card-desc">
+                    Этот промпт отправляется модели в каждом запросе.
+                  </div>
+                </div>
+              </div>
+              <textarea id="s_prompt" rows="5"></textarea>
+            </div>
+            <div class="settings-card">
+              <div class="settings-card-head">
+                <div>
+                  <div class="section-title">Шаблоны промптов</div>
+                  <div class="settings-card-desc">
+                    Быстрые заготовки. Нажмите, чтобы подставить.
+                  </div>
+                </div>
+                <div class="tpl-actions">
+                  <button class="btn ghost sm" id="tpl_add" type="button">
+                    ＋ Добавить
+                  </button>
+                  <button class="btn ghost sm" id="tpl_add_rec" type="button">
+                    📋 Рекомендуемый
+                  </button>
+                </div>
+              </div>
+              <div id="tplList" class="tpl-list"></div>
+              <div id="tplEdit" class="tpl-edit" style="display: none">
+                <input id="tplEditName" placeholder="Название" />
+                <textarea
+                  id="tplEditText"
+                  rows="3"
+                  placeholder="Текст промпта..."
+                ></textarea>
+                <div class="tpl-edit-actions">
+                  <button class="btn primary sm" id="tplEditSave" type="button">
+                    Сохранить
+                  </button>
+                  <button class="btn ghost sm" id="tplEditCancel" type="button">
+                    Отмена
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-content" data-content="keys">
+            <div class="settings-card">
+              <div class="settings-card-head">
+                <div>
+                  <div class="section-title">API-ключи провайдеров</div>
+                  <div class="settings-card-desc">
+                    Ключи хранятся только в вашем аккаунте. Каждый провайдер
+                    отдельно.
+                  </div>
+                </div>
+              </div>
+              <div id="s_keys" class="provkeys"></div>
+            </div>
+          </div>
+
+          <div class="tab-content" data-content="notify">
+            <div class="settings-card">
+              <div class="settings-card-head">
+                <div>
+                  <div class="section-title">Оповещения</div>
+                  <div class="settings-card-desc">
+                    Звук и вибрация при получении ответа.
+                  </div>
+                </div>
+              </div>
+              <div class="toggles">
+                <label class="toggle"
+                  ><input type="checkbox" id="s_sound" /><span
+                    >🔔 Звук</span
+                  ></label
+                >
+                <label class="toggle"
+                  ><input type="checkbox" id="s_vibrate" /><span
+                    >📳 Вибрация</span
+                  ></label
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-content" data-content="more">
+            <div class="settings-card">
+              <div class="settings-card-head">
+                <div>
+                  <div class="section-title">Лимит контекста</div>
+                  <div class="settings-card-desc">
+                    Сколько последних сообщений помнить.
+                  </div>
+                </div>
+              </div>
+              <div class="seg-picker" data-name="context_limit" data-value="10">
+                <button data-val="5" class="seg-btn">5</button>
+                <button data-val="10" class="seg-btn active">10</button>
+                <button data-val="20" class="seg-btn">20</button>
+                <button data-val="50" class="seg-btn">50</button>
+                <button data-val="100" class="seg-btn">100</button>
+              </div>
+              <input type="hidden" id="s_limit" value="10" />
+            </div>
+            <div class="settings-card">
+              <div class="settings-card-head">
+                <div>
+                  <div class="section-title">Статистика токенов</div>
+                  <div class="settings-card-desc">
+                    Показывать ли расход токенов под ответом.
+                  </div>
+                </div>
+              </div>
+              <div
+                class="seg-picker"
+                data-name="stats_display"
+                data-value="compact"
+              >
+                <button data-val="disabled" class="seg-btn">Скрыть</button>
+                <button data-val="compact" class="seg-btn active">
+                  Компактно
+                </button>
+                <button data-val="full" class="seg-btn">Полная</button>
+              </div>
+              <input type="hidden" id="s_stats" value="compact" />
+            </div>
+            <div class="settings-card">
+              <div class="settings-card-head">
+                <div>
+                  <div class="section-title">Экспорт чата</div>
+                  <div class="settings-card-desc">
+                    Скачать переписку в файл.
+                  </div>
+                </div>
+              </div>
+              <div class="export-btns">
+                <button class="btn ghost sm" id="s_export_md" type="button">
+                  📄 Markdown
+                </button>
+                <button class="btn ghost sm" id="s_export_txt" type="button">
+                  📝 TXT
+                </button>
+              </div>
+            </div>
+            <div class="settings-card">
+              <div class="settings-card-head">
+                <div>
+                  <div class="section-title">Инструменты</div>
+                  <div class="settings-card-desc">Дополнительные действия.</div>
+                </div>
+              </div>
+              <div class="export-btns" style="margin-bottom: 8px">
+                <button id="s_pwa" class="btn ghost sm" type="button">
+                  📲 PWA
+                </button>
+                <button id="s_web" class="btn ghost sm" type="button">
+                  🌐 В браузере
+                </button>
+              </div>
+              <a
+                id="s_admin"
+                class="btn sm"
+                href="admin.html"
+                style="display: none; align-self: flex-start"
+                >🛠 Админ-панель</a
+              >
+            </div>
+          </div>
+
+          <div class="actions-bar">
+            <button id="s_save" class="btn primary" type="button">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
+                ></path>
+                <path d="M17 21v-8H7v8M7 3v5h8"></path>
+              </svg>
+              Сохранить
+            </button>
+            <span id="s_status"></span>
+          </div>
+          <div class="settings-tabs">
+            <button class="stab active" data-tab="theme">
+              <span class="stab-icon">🎨</span>Тема
+            </button>
+            <button class="stab" data-tab="prompts">
+              <span class="stab-icon">💬</span>Промпты
+            </button>
+            <button class="stab" data-tab="keys">
+              <span class="stab-icon">🔑</span>Ключи
+            </button>
+            <button class="stab" data-tab="notify">
+              <span class="stab-icon">🔔</span>Опов.
+            </button>
+            <button class="stab" data-tab="more">
+              <span class="stab-icon">📤</span>Ещё
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="chatSearch" class="overlay">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="grip"></span>
+          <b>🔍 Поиск по чату</b>
+          <button class="close" data-close="chatSearch" title="Закрыть">
+            ✕
+          </button>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <input
+              id="cs_input"
+              placeholder="Введите текст для поиска…"
+              autofocus
+            />
+          </div>
+          <div
+            id="cs_results"
+            style="
+              max-height: 60vh;
+              overflow-y: auto;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+            "
+          ></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modelBrowser" class="overlay">
+      <div class="panel">
+        <div class="panel-head">
+          <span class="grip"></span>
+          <b>🧠 Браузер моделей</b>
+          <button class="close" data-close="modelBrowser" title="Закрыть">
+            ✕
+          </button>
+        </div>
+        <div class="mb-search">
+          <div class="field">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input id="mb_search" placeholder="Поиск моделей" />
+          </div>
+          <button class="fbtn" id="mb_filter" title="Фильтры">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M3 5h18M6 12h12M10 19h4"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="mb-detail" id="mb_detail">
+          <div class="mb-empty">
+            Выбери модель из списка, чтобы увидеть подробности.
+          </div>
+        </div>
+        <div class="mb-list" id="mb_list"></div>
+      </div>
+    </div>
+
+    <div id="emptyState" class="empty-state" style="display: none">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+        ></path>
+      </svg>
+      <b>Начни диалог</b>
+      <span>Выбери модель в браузере и напиши сообщение</span>
+    </div>
+
+    <div id="messages"></div>
+
+    <div id="attach"></div>
+    <div id="vision"></div>
+
+    <div id="lightbox">
+      <button class="lb-close" title="Закрыть">✕</button>
+      <img id="lb_img" alt="" />
+      <div class="lb-actions">
+        <button id="lb_save">💾 Сохранить</button>
+        <button id="lb_reply" class="lb-reply">↩️ Ответить</button>
+      </div>
+    </div>
+
+    <div id="toasts"></div>
+
+    <div id="ctxMenu">
+      <button data-act="copy">📋 Копировать</button>
+      <button data-act="reply">↩️ Ответить</button>
+      <button data-act="delete" class="danger">🗑 Удалить</button>
+    </div>
+
+    <form id="bar" autocomplete="off">
+      <input
+        id="imgfile"
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style="display: none"
+      />
+      <button id="imgbtn" type="button" class="cbtn" title="Прикрепить фото">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path
+            d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+          ></path>
+          <circle cx="12" cy="13" r="4"></circle>
+        </svg>
+      </button>
+      <div class="composer">
+        <input id="input" placeholder="Сообщение или фото…" />
+        <button type="submit" class="send-btn" title="Отправить">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"></path>
+          </svg>
+        </button>
+      </div>
+    </form>
+    <script src="./sw-register.js"></script>
+    <script src="app.js"></script>
+    <!-- DEV ONLY: мобильная консоль отладки (eruda). Не удалять временно. -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+      if (window.eruda) eruda.init();
+    </script>
+  </body>
+</html>
