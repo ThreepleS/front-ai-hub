@@ -2626,7 +2626,7 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
     else if (id === "chatSearch") closeChatSearch();
   });
 });
--e 
+
 function saveLocalHistory() {
   const msgs = [];
   box.querySelectorAll(".msg").forEach(el => {
