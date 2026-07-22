@@ -1120,7 +1120,7 @@ async function auth(devId) {
     }
     const cur = currentDialog();
     if (cur && (!cur.messages || cur.messages.length === 0)) {
-      const hist = (data.history || []).map((m: any) => ({
+      const hist = (data.history || []).map((m) => ({
         role: m.role,
         content: m.content || "",
         image: m.image || null,
