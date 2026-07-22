@@ -117,7 +117,6 @@ function createDialog(name) {
     name: name || generateDialogName(),
     messages: [],
     model: currentModelId || "",
-    system_prompt: ($("#s_prompt")?.value || "").trim(),
     created_at: Date.now(),
     updated_at: Date.now(),
   };
@@ -183,7 +182,6 @@ function autoSaveCurrentDialog() {
   });
   dialog.messages = msgs;
   dialog.model = currentModelId || dialog.model;
-  dialog.system_prompt = ($("#s_prompt")?.value || "").trim();
   dialog.updated_at = Date.now();
   const data = getDialogs();
   if (!data) return;
@@ -191,7 +189,6 @@ function autoSaveCurrentDialog() {
   if (existing) {
     existing.messages = dialog.messages;
     existing.model = dialog.model;
-    existing.system_prompt = dialog.system_prompt;
     existing.updated_at = dialog.updated_at;
   }
   saveDialogs(data);
@@ -210,7 +207,6 @@ function renderDialog(dialog) {
   box.scrollTop = box.scrollHeight;
   updateEmptyState();
   currentModelId = dialog.model || currentModelId;
-  if ($("#s_prompt")) $("#s_prompt").value = dialog.system_prompt || "";
 }
 
 function renderDialogsPanel() {
@@ -271,12 +267,12 @@ function renderDialogsPanel() {
 
 function openDialogs() {
   renderDialogsPanel();
-  $("#dialogsPanel").classList.add("open");
+  $("#dialogs").classList.add("open");
   $("#dialogs").style.display = "";
 }
 
 function closeDialogs() {
-  $("#dialogsPanel").classList.remove("open");
+  $("#dialogs").classList.remove("open");
 }
 
 // --- Markdown rendering (через marked + санитайзер) -------------------
@@ -1064,6 +1060,7 @@ function fillSettings(s) {
     const ls = JSON.parse(localStorage.getItem("local_settings") || "{}");
     if (vib) vib.checked = ls.notify_vibrate !== undefined ? ls.notify_vibrate : !!s.notify_vibrate;
     if (ls.vib_strength) $("#s_vib_strength").value = ls.vib_strength;
+    if ($("#s_limit_full")) $("#s_limit_full").checked = !!ls.context_limit_full;
   } catch {}
   syncSegPickers();
   updateVibVal();
@@ -1120,6 +1117,24 @@ async function auth(devId) {
     } else {
       createDialog();
       renderDialog(currentDialog());
+    }
+    const cur = currentDialog();
+    if (cur && (!cur.messages || cur.messages.length === 0)) {
+      const hist = (data.history || []).map((m: any) => ({
+        role: m.role,
+        content: m.content || "",
+        image: m.image || null,
+      }));
+      if (hist.length > 0) {
+        cur.messages = hist;
+        const all = getDialogs();
+        if (all) {
+          const ex = all.dialogs.find((d) => d.id === cur.id);
+          if (ex) { ex.messages = hist; ex.updated_at = Date.now(); }
+        }
+        saveDialogs(all || getDialogs());
+        renderDialog(cur);
+      }
     }
 
     log("модель: " + (data.settings.selected_model || "—"));
@@ -1416,8 +1431,13 @@ $("#bar").addEventListener("submit", async (e) => { vibClick();
 
   try {
     const systemPromptToSend = ($("#s_prompt")?.value || "").trim();
-    const currentHist = currentDialog()?.messages || [];
-    const res = await ef("chat", { message: text, image: imageToSend, system_prompt: systemPromptToSend || undefined, history: currentHist }, 300000);
+    const contextLimitFull = $("#s_limit_full")?.checked || false;
+    const contextLimit = contextLimitFull ? 9999 : parseInt(($("#s_limit")?.value || "10"), 10);
+    let currentHist = currentDialog()?.messages || [];
+    if (!contextLimitFull && currentHist.length > contextLimit) {
+      currentHist = currentHist.slice(-contextLimit);
+    }
+    const res = await ef("chat", { message: text, image: imageToSend, system_prompt: systemPromptToSend || undefined, history: currentHist, context_limit_full: contextLimitFull || undefined }, 300000);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       addMessage("bot", escapeHtml(data.error || "ошибка " + res.status));
@@ -2165,7 +2185,8 @@ $("#s_save").addEventListener("click", async () => { vibClick();
   try {
     localStorage.setItem("local_settings", JSON.stringify({
       notify_vibrate: $("#s_vibrate") ? $("#s_vibrate").checked : false,
-      vib_strength: getVibStrength()
+      vib_strength: getVibStrength(),
+      context_limit_full: $("#s_limit_full") ? $("#s_limit_full").checked : false,
     }));
     if (["monochrome", "hacker", "candy"].includes(theme) || ["nord", "synthwave"].includes(theme)) {
       localStorage.setItem("local_theme_override", theme);
@@ -2221,6 +2242,19 @@ if (limitSlider) {
   limitSlider.addEventListener("input", () => {
     $("#limitVal").textContent = limitSlider.value;
     $("#s_limit").value = limitSlider.value;
+  });
+}
+
+let systemPromptSaveTimer;
+if ($("#s_prompt")) {
+  $("#s_prompt").addEventListener("input", () => {
+    clearTimeout(systemPromptSaveTimer);
+    systemPromptSaveTimer = setTimeout(async () => {
+      const sp = ($("#s_prompt").value || "").trim();
+      try {
+        await ef("settings", Object.assign(authBody(), { system_prompt: sp }), 15000);
+      } catch {}
+    }, 1000);
   });
 }
 
@@ -2503,6 +2537,7 @@ $("#cs_input").addEventListener("input", (e) =>
 $("#searchBtn").addEventListener("click", openChatSearch);
 
 $("#newChatBtn").addEventListener("click", async () => { vibClick();
+  if (!confirm("Начать новый диалог? Текущий будет сохранён.")) return;
   autoSaveCurrentDialog();
   createDialog();
   renderDialog(currentDialog());
@@ -2688,7 +2723,7 @@ $("#gear").addEventListener("click", () => { vibClick();
 
 $("#dialogsBtn").addEventListener("click", () => {
   vibClick();
-  if ($("#dialogsPanel").classList.contains("open")) closeDialogs();
+  if ($("#dialogs").classList.contains("open")) closeDialogs();
   else openDialogs();
 });
 
