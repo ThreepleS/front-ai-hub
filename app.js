@@ -87,33 +87,37 @@ function generateDialogName() {
 }
 
 async function loadDialogsFromDb() {
-  const data = await ef("dialogs", { action: "list" }, 120000);
-  if (!data.ok) throw new Error(data.error || "dialog list failed");
+  const response = await ef("dialogs", { action: "list" }, 120000);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(data?.error || "dialog list failed");
   return data.dialogs || [];
 }
 async function createDialogDb(name) {
   const now = Date.now();
-  const data = await ef(
+  const response = await ef(
     "dialogs",
     { action: "create", name, messages: [], model: currentModelId || "", created_at: now, updated_at: now },
     120000
   );
-  if (!data.ok) throw new Error(data.error || "create dialog failed");
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(data?.error || "create dialog failed");
   return data.dialog;
 }
 async function saveDialogToDb(dialog) {
   if (!dialog || !dialog.id) return;
-  const data = await ef(
+  const response = await ef(
     "dialogs",
     { action: "update", id: dialog.id, name: dialog.name, messages: dialog.messages, model: dialog.model },
     120000
   );
-  if (!data.ok) throw new Error(data.error || "save dialog failed");
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(data?.error || "save dialog failed");
   return data.dialog;
 }
 async function deleteDialogDb(id) {
-  const data = await ef("dialogs", { action: "delete", id }, 120000);
-  if (!data.ok) throw new Error(data.error || "delete dialog failed");
+  const response = await ef("dialogs", { action: "delete", id }, 120000);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(data?.error || "delete dialog failed");
 }
 async function ensureCurrentDialog() {
   let dialogs = [];
@@ -2362,20 +2366,23 @@ const DEFAULT_TEMPLATES = [
 ];
 async function tplLoadFromDb() {
   try {
-    const data = await ef("settings", { templates_action: "list" }, 120000);
-    if (!data.ok) throw new Error(data.error || "templates list failed");
+    const response = await ef("settings", { templates_action: "list" }, 120000);
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) throw new Error(data?.error || "templates list failed");
     const list = data.templates || [];
     if (list.length) return list;
   } catch {}
   return JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
 }
 async function tplSaveToDb(list) {
-  const data = await ef("settings", { templates_action: "save", templates: list }, 120000);
-  if (!data.ok) throw new Error(data.error || "templates save failed");
+  const response = await ef("settings", { templates_action: "save", templates: list }, 120000);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(data?.error || "templates save failed");
 }
 async function tplDeleteFromDb(id) {
-  const data = await ef("settings", { templates_action: "delete", id }, 120000);
-  if (!data.ok) throw new Error(data.error || "templates delete failed");
+  const response = await ef("settings", { templates_action: "delete", id }, 120000);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || !data.ok) throw new Error(data?.error || "templates delete failed");
 }
 let tplList = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
 let tplEditingId = null;
