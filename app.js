@@ -931,18 +931,6 @@ function addMessage(role, html, stats, scroll) {
     s.textContent = stats;
     el.appendChild(s);
   }
-  if (role === "bot") {
-    const regen = document.createElement("button");
-    regen.className = "msg-regen";
-    regen.innerHTML = "&#x27F3; перегенерировать";
-    regen.title = "Перегенерировать ответ";
-    regen.addEventListener("click", () => {
-      if (!lastUserMessage) return;
-      const input = $("#input");
-      input.value = lastUserMessage;
-      $("#bar").dispatchEvent(new Event("submit"));
-    });
-    el.appendChild(regen);
   }
   box.appendChild(el);
   if (role === "bot") addCodeCopy(el);

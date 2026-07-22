@@ -755,29 +755,6 @@ header {
   white-space: pre-wrap;
   opacity: 0.85;
 }
-.msg-regen {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 6px;
-  padding: 3px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--stroke);
-  background: var(--glass);
-  color: var(--muted);
-  font-size: 11px;
-  cursor: pointer;
-  transition:
-    transform 0.15s,
-    background 0.2s,
-    border-color 0.2s;
-}
-.msg-regen:hover {
-  transform: translateY(-1px);
-  border-color: var(--stroke-strong);
-  background: color-mix(in srgb, var(--glass) 80%, var(--accent));
-  color: var(--text);
-}
 
 /* Context menu */
 #ctxMenu {
