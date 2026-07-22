@@ -561,6 +561,35 @@
       </div>
     </div>
 
+    <div id="confirmModal" class="modal" style="display:none">
+      <div class="modal-backdrop"></div>
+      <div class="modal-dialog">
+        <div class="modal-head">
+          <b id="confirmTitle">Подтверждение</b>
+          <button class="modal-close" data-close="confirmModal">✕</button>
+        </div>
+        <div class="modal-body" id="confirmBody"></div>
+        <div class="modal-foot">
+          <button class="btn ghost" data-close="confirmModal">Отмена</button>
+          <button class="btn primary" id="confirmOk">ОК</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="alertModal" class="modal" style="display:none">
+      <div class="modal-backdrop"></div>
+      <div class="modal-dialog">
+        <div class="modal-head">
+          <b id="alertTitle">Внимание</b>
+          <button class="modal-close" data-close="alertModal">✕</button>
+        </div>
+        <div class="modal-body" id="alertBody"></div>
+        <div class="modal-foot">
+          <button class="btn primary" data-close="alertModal">ОК</button>
+        </div>
+      </div>
+    </div>
+
     <div id="toasts"></div>
 
     <div id="ctxMenu">

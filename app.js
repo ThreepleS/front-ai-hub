@@ -4,7 +4,11 @@ window.addEventListener("error", (e) => {
     if (el) el.textContent = "JS ошибка: " + (e.message || e.error || e);
   } catch {}
   try {
-    alert("JS ошибка: " + (e.message || e.error || e));
+    if ($("#alertModal")) {
+      $("#alertTitle").textContent = "Ошибка";
+      $("#alertBody").textContent = "JS ошибка: " + (e.message || e.error || e);
+      $("#alertModal").classList.add("open");
+    }
   } catch {}
 });
 const $ = (s) => document.querySelector(s);
@@ -141,15 +145,19 @@ function deleteDialog(id) {
   if (!data) return;
   const idx = data.dialogs.findIndex((d) => d.id === id);
   if (idx < 0) return;
+  const removed = data.dialogs[idx];
   data.dialogs.splice(idx, 1);
   if (data.dialogs.length === 0) {
     data.dialogs.push(createDialog());
   }
   if (data.current_dialog_id === id) {
-    data.current_dialog_id = data.dialogs[0].id;
+    data.current_dialog_id = removed && removed.id === id ? data.dialogs[0].id : data.current_dialog_id;
   }
   saveDialogs(data);
-  renderDialog(currentDialog());
+  const cur = currentDialog();
+  if (cur) renderDialog(cur);
+  else { createDialog(); renderDialog(currentDialog()); }
+  renderDialogsPanel();
 }
 
 function renameDialog(id, newName) {
@@ -230,18 +238,21 @@ function renderDialogsPanel() {
     });
     item.innerHTML = `
       <div class="dialog-item-main" data-id="${d.id}">
-        <div class="dialog-item-name" title="Нажми, чтобы переименовать">${esc(d.name)}</div>
+        <div class="dialog-item-name" title="Нажми, чтобы переименовать">
+          <span class="dialog-name-text">${esc(d.name)}</span>
+          <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать">✏️</button>
+        </div>
         <div class="dialog-item-meta">${date} · ${d.messages.length} сообщ.</div>
       </div>
       <button class="dialog-item-del" data-del="${d.id}" title="Удалить">🗑</button>
     `;
-    item.querySelector(".dialog-item-main").addEventListener("click", () => switchDialog(d.id));
-    item.querySelector(".dialog-item-name").addEventListener("dblclick", () => {
+    const startRename = () => {
+      const nameEl = item.querySelector(".dialog-name-text");
+      if (!nameEl) return;
       const inp = document.createElement("input");
       inp.type = "text";
       inp.value = d.name;
       inp.className = "dialog-rename-input";
-      const nameEl = item.querySelector(".dialog-item-name");
       nameEl.replaceWith(inp);
       inp.focus();
       inp.select();
@@ -253,14 +264,24 @@ function renderDialogsPanel() {
         if (e.key === "Enter") finish();
         if (e.key === "Escape") renderDialogsPanel();
       });
+    };
+    item.querySelector(".dialog-item-main").addEventListener("click", () => switchDialog(d.id));
+    item.querySelector(".dialog-item-name").addEventListener("dblclick", (e) => {
+      e.stopPropagation();
+      startRename();
+    });
+    item.querySelector(".dialog-item-edit").addEventListener("click", (e) => {
+      e.stopPropagation();
+      startRename();
     });
     panel.appendChild(item);
   });
   document.querySelectorAll(".dialog-item-del").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       const id = btn.dataset.del;
-      if (confirm("Удалить диалог?")) deleteDialog(id);
+      const ok = await showConfirm("Удалить диалог", "Вы уверены? Этот диалог будет удалён навсегда.");
+      if (ok) deleteDialog(id);
     });
   });
 }
@@ -975,8 +996,9 @@ $("#s_web").addEventListener("click", async () => {
   try {
     const initData = currentInitData();
     if (!initData) {
-      alert(
-        "⚠️ Нет данных Telegram (init_data). Откройте приложение через Telegram, чтобы передать авторизацию в браузер.",
+      await showAlert(
+        "Нет авторизации",
+        "Откройте приложение через Telegram, чтобы передать авторизацию в браузер.",
       );
       return;
     }
@@ -995,7 +1017,7 @@ $("#s_web").addEventListener("click", async () => {
       window.open(url, "_blank");
     }
   } catch (err) {
-    alert("⚠️ " + String(err));
+    await showAlert("Ошибка", "⚠️ " + String(err));
   }
 });
 
@@ -1086,9 +1108,9 @@ async function auth(devId) {
     res = await ef("auth", {}, 15000);
   } catch (e) {
     const tip =
-      "Не удалось достучаться до сервера (Supabase). Проверь интернет и что FN_BASE задан верно (адрес Functions).";
+      "Не удалось достучаться до сервера. Проверь интернет и адрес Functions.";
     log("⚠️ " + tip);
-    alert("⚠️ " + tip);
+    await showAlert("Ошибка подключения", "⚠️ " + tip);
     setStatus("err");
     return false;
   }
@@ -1096,7 +1118,7 @@ async function auth(devId) {
     const data = await res.json();
     if (!data.ok) {
       log(data.error || "нет доступа");
-      alert("⚠️ " + (data.error || "нет доступа"));
+      await showAlert("Ошибка", "⚠️ " + (data.error || "нет доступа"));
       setStatus("err");
       return false;
     }
@@ -1266,7 +1288,7 @@ $("#imgfile").addEventListener("change", (e) => {
   const f = e.target.files && e.target.files[0];
   if (!f) return;
   if (f.size > 8 * 1024 * 1024) {
-    alert("Файл слишком большой (макс 8 МБ).");
+    showAlert("Файл слишком большой", "Максимальный размер фото — 8 МБ.");
     e.target.value = "";
     return;
   }
@@ -1403,7 +1425,7 @@ $("#lb_reply").addEventListener("click", async () => {
     showAttach();
     closeLightbox();
   } catch (err) {
-    alert("⚠️ Не удалось вставить фото: " + String(err));
+    await showAlert("Ошибка", "⚠️ Не удалось вставить фото: " + String(err));
   }
 });
 
@@ -1961,7 +1983,7 @@ async function mbPick(id) {
     log("модель: " + id);
     mbClose();
   } catch (e) {
-    alert("⚠️ " + e);
+    await showAlert("Ошибка", "⚠️ " + String(e));
   }
 }
 async function mbToggleFav(id) {
@@ -2243,6 +2265,20 @@ if (limitSlider) {
     $("#limitVal").textContent = limitSlider.value;
     $("#s_limit").value = limitSlider.value;
   });
+}
+
+function updateLimitVisibility() {
+  const full = $("#s_limit_full")?.checked || false;
+  const rc = document.querySelector(".range-container");
+  const lv = $("#limitVal");
+  if (rc) rc.style.display = full ? "none" : "flex";
+  if (lv) lv.style.display = full ? "none" : "inline-block";
+}
+
+const limitFullToggle = $("#s_limit_full");
+if (limitFullToggle) {
+  limitFullToggle.addEventListener("change", updateLimitVisibility);
+  updateLimitVisibility();
 }
 
 let systemPromptSaveTimer;
@@ -2537,7 +2573,7 @@ $("#cs_input").addEventListener("input", (e) =>
 $("#searchBtn").addEventListener("click", openChatSearch);
 
 $("#newChatBtn").addEventListener("click", async () => { vibClick();
-  if (!confirm("Начать новый диалог? Текущий будет сохранён.")) return;
+  if (!(await showConfirm("Новый диалог", "Текущий диалог будет сохранён. Продолжить?"))) return;
   autoSaveCurrentDialog();
   createDialog();
   renderDialog(currentDialog());
@@ -2793,12 +2829,68 @@ window.addEventListener("appinstalled", () => {
   window.deferredPrompt = null;
 });
 
+function showConfirm(title, message) {
+  return new Promise((resolve) => {
+    const modal = $("#confirmModal");
+    $("#confirmTitle").textContent = title || "Подтверждение";
+    $("#confirmBody").textContent = message || "";
+    modal.classList.add("open");
+    const onOk = () => {
+      modal.classList.remove("open");
+      cleanup();
+      resolve(true);
+    };
+    const onCancel = () => {
+      modal.classList.remove("open");
+      cleanup();
+      resolve(false);
+    };
+    const cleanup = () => {
+      $("#confirmOk").removeEventListener("click", onOk);
+      modal.querySelectorAll("[data-close]").forEach((btn) => btn.removeEventListener("click", onCancel));
+      modal.querySelector(".modal-backdrop").removeEventListener("click", onCancel);
+    };
+    $("#confirmOk").addEventListener("click", onOk);
+    modal.querySelectorAll("[data-close]").forEach((btn) => btn.addEventListener("click", onCancel));
+    modal.querySelector(".modal-backdrop").addEventListener("click", onCancel);
+  });
+}
+
+function showAlert(title, message) {
+  return new Promise((resolve) => {
+    const modal = $("#alertModal");
+    $("#alertTitle").textContent = title || "Внимание";
+    $("#alertBody").textContent = message || "";
+    modal.classList.add("open");
+    const cleanup = () => {
+      modal.classList.remove("open");
+      modal.querySelectorAll("[data-close]").forEach((btn) => btn.removeEventListener("click", onClose));
+      modal.querySelector(".modal-backdrop").removeEventListener("click", onClose);
+    };
+    const onClose = () => {
+      cleanup();
+      resolve(true);
+    };
+    modal.querySelectorAll("[data-close]").forEach((btn) => btn.addEventListener("click", onClose));
+    modal.querySelector(".modal-backdrop").addEventListener("click", onClose);
+  });
+}
+
+function mbConfirm(message, okLabel, cancelLabel) {
+  return showConfirm(
+    okLabel ? "Подтверждение" : "Внимание",
+    cancelLabel ? message : message
+  ).then((ok) => {
+    if (ok && okLabel) return true;
+    return false;
+  });
+}
+
 // --- Toast-уведомления (вместо скучных alert там, где уместно) ---
 function toast(msg, type) {
   try {
     const wrap = document.getElementById("toasts");
     if (!wrap) {
-      alert(msg);
       return;
     }
     const el = document.createElement("div");
@@ -2816,7 +2908,9 @@ function toast(msg, type) {
     }, 2600);
   } catch (e) {
     try {
-      alert(msg);
+      $("#alertModal");
+      $("#alertBody").textContent = msg;
+      $("#alertModal").classList.add("open");
     } catch {}
   }
 }
