@@ -931,7 +931,6 @@ function addMessage(role, html, stats, scroll) {
     s.textContent = stats;
     el.appendChild(s);
   }
-  }
   box.appendChild(el);
   if (role === "bot") addCodeCopy(el);
   if (scroll !== false) box.scrollTop = box.scrollHeight;
