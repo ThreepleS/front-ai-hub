@@ -1334,37 +1334,47 @@ document.addEventListener("contextmenu", (e) => {
 box.addEventListener("mousedown", (e) => {
   const msg = e.target.closest(".msg");
   if (!msg) return;
+  const inner = e.target.closest("button, a, code, pre");
+  if (inner) return;
   ctxPressStart = Date.now();
   ctxPressStartSel = window.getSelection().toString();
 });
 box.addEventListener("touchstart", (e) => {
   const msg = e.target.closest(".msg");
   if (!msg) return;
+  const inner = e.target.closest("button, a, code, pre");
+  if (inner) return;
   ctxPressStart = Date.now();
   ctxPressStartSel = window.getSelection().toString();
 }, { passive: true });
 box.addEventListener("mouseup", (e) => {
   const msg = e.target.closest(".msg");
   if (!msg) return;
-  const pressDuration = Date.now() - ctxPressStart;
-  const selectionChanged = window.getSelection().toString().trim().length > 0 && window.getSelection().toString() !== ctxPressStartSel;
   const inner = e.target.closest("button, a, code, pre");
   if (inner) return;
-  if (pressDuration < 200 && !selectionChanged) {
+  const pressDuration = Date.now() - ctxPressStart;
+  const selectionChanged = window.getSelection().toString().trim().length > 0 && window.getSelection().toString() !== ctxPressStartSel;
+  if (pressDuration < 200 && !selectionChanged && ctxPressStart > 0) {
     showCtx(e.clientX, e.clientY, msg);
   }
+  ctxPressStart = 0;
+  ctxPressStartSel = "";
 });
 box.addEventListener("touchend", (e) => {
   const msg = e.target.closest(".msg");
   if (!msg) return;
+  const inner = e.target.closest("button, a, code, pre");
+  if (inner) return;
   const pressDuration = Date.now() - ctxPressStart;
   const selectionChanged = window.getSelection().toString().trim().length > 0 && window.getSelection().toString() !== ctxPressStartSel;
-  if (pressDuration < 200 && !selectionChanged) {
+  if (pressDuration < 200 && !selectionChanged && ctxPressStart > 0) {
     const touch = e.changedTouches && e.changedTouches[0];
     if (touch) {
       showCtx(touch.clientX, touch.clientY, msg);
     }
   }
+  ctxPressStart = 0;
+  ctxPressStartSel = "";
 });
 ctxMenu.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
