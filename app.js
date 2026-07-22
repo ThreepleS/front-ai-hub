@@ -36,13 +36,19 @@ const FN_BASE = resolveFnBase();
 async function ef(name, body, ms = 20000) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
+  const url = FN_BASE + "/" + name;
   try {
-    return await fetch(FN_BASE + "/" + name, {
+    const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(Object.assign(authBody(), body || {})),
       signal: ctrl.signal,
     });
+    return response;
+  } catch (e) {
+    const msg = e && e.message ? e.message : String(e);
+    log("ef " + name + " failed: " + msg + " url=" + url);
+    throw e;
   } finally {
     clearTimeout(t);
   }
@@ -93,15 +99,20 @@ async function loadDialogsFromDb() {
   return data.dialogs || [];
 }
 async function createDialogDb(name) {
-  const now = Date.now();
-  const response = await ef(
-    "dialogs",
-    { action: "create", name, messages: [], model: currentModelId || "", created_at: now, updated_at: now },
-    120000
-  );
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || !data.ok) throw new Error(data?.error || "create dialog failed");
-  return data.dialog;
+  try {
+    const now = Date.now();
+    const response = await ef(
+      "dialogs",
+      { action: "create", name, messages: [], model: currentModelId || "", created_at: now, updated_at: now },
+      120000
+    );
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.ok) throw new Error(data?.error || "create dialog failed");
+    return data.dialog;
+  } catch (e) {
+    log("createDialogDb error: " + (e && e.message ? e.message : String(e)));
+    throw e;
+  }
 }
 async function saveDialogToDb(dialog) {
   if (!dialog || !dialog.id) return;
@@ -2639,8 +2650,9 @@ $("#newChatBtn").addEventListener("click", async () => { vibClick();
     renderDialogsPanel();
     toast("Новый диалог начат", "ok");
   } catch (e) {
-    toast("Не удалось создать новый диалог: " + (e.message || e), "err");
-    log("new chat: " + (e.message || e));
+    const errText = e && e.message ? e.message : String(e);
+    toast("Не удалось создать новый диалог: " + errText, "err");
+    log("new chat error: " + errText);
   }
 });
 
