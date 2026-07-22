@@ -764,6 +764,7 @@ const THEME_PRESETS = {
   candy: {},
   nord: {},
   synthwave: {},
+  catppuccin: {},
 };
 function applyTheme(t) {
   document.documentElement.setAttribute("data-theme", t || "dark");
@@ -794,6 +795,12 @@ try {
       "neon",
       "lava",
       "ocean",
+      "monochrome",
+      "hacker",
+      "candy",
+      "nord",
+      "synthwave",
+      "catppuccin",
       "custom",
     ].includes(saved)
   ) {

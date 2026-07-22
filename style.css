@@ -194,6 +194,42 @@
     linear-gradient(180deg, var(--bg-2), var(--bg));
   background-attachment: fixed;
 }
+[data-theme="catppuccin"] {
+  --bg: #1e1e2e;
+  --bg-2: #181825;
+  --panel: rgba(49, 50, 68, 0.72);
+  --panel-solid: #313244;
+  --glass: rgba(69, 71, 90, 0.55);
+  --stroke: rgba(108, 112, 134, 0.16);
+  --stroke-strong: rgba(108, 112, 134, 0.32);
+  --accent: #b4befe;
+  --accent-2: #cba6f7;
+  --accent-3: #94e2d5;
+  --text: #cdd6f4;
+  --muted: #a6adc8;
+  --green: #a6e3a1;
+  --amber: #f9e2af;
+  --red: #f38ba8;
+  --shadow: 0 10px 40px rgba(17, 17, 27, 0.6);
+  background:
+    radial-gradient(
+      800px 600px at 15% 5%,
+      rgba(180, 190, 254, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 500px at 85% 95%,
+      rgba(203, 166, 247, 0.1),
+      transparent 55%
+    ),
+    radial-gradient(
+      600px 400px at 50% 50%,
+      rgba(148, 226, 213, 0.06),
+      transparent 50%
+    ),
+    linear-gradient(180deg, var(--bg-2), var(--bg));
+  background-attachment: fixed;
+}
 [data-theme="custom"] {
   --bg: var(--custom-bg, #0b0f1a);
   --bg-2: var(--custom-bg2, #0e1424);
