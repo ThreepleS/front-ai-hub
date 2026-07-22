@@ -73,7 +73,9 @@ function escapeHtml(s) {
 }
 const esc = escapeHtml;
 
-// --- Dialog management ---------------------------------------------------
+// --- Dialog management (DB-backed cross-device) -----------------------
+let activeDialogId = null;
+let currentDialogData = null;
 function generateDialogName() {
   const now = new Date();
   const dd = String(now.getDate()).padStart(2, "0");
@@ -84,96 +86,181 @@ function generateDialogName() {
   return `Диалог от ${dd}.${mm}.${yy} ${hh}:${min}`;
 }
 
-function getDialogs() {
+async function loadDialogsFromDb() {
+  const data = await ef("dialogs", { action: "list" }, 120000);
+  if (!data.ok) throw new Error(data.error || "dialog list failed");
+  return data.dialogs || [];
+}
+async function createDialogDb(name) {
+  const now = Date.now();
+  const data = await ef(
+    "dialogs",
+    { action: "create", name, messages: [], model: currentModelId || "", created_at: now, updated_at: now },
+    120000
+  );
+  if (!data.ok) throw new Error(data.error || "create dialog failed");
+  return data.dialog;
+}
+async function saveDialogToDb(dialog) {
+  if (!dialog || !dialog.id) return;
+  const data = await ef(
+    "dialogs",
+    { action: "update", id: dialog.id, name: dialog.name, messages: dialog.messages, model: dialog.model },
+    120000
+  );
+  if (!data.ok) throw new Error(data.error || "save dialog failed");
+  return data.dialog;
+}
+async function deleteDialogDb(id) {
+  const data = await ef("dialogs", { action: "delete", id }, 120000);
+  if (!data.ok) throw new Error(data.error || "delete dialog failed");
+}
+async function ensureCurrentDialog() {
+  let dialogs = [];
   try {
-    const raw = localStorage.getItem("chat_dialogs");
-    if (!raw) return null;
-    const data = JSON.parse(raw);
-    if (!Array.isArray(data.dialogs)) return null;
-    return data;
-  } catch {
-    return null;
+    dialogs = await loadDialogsFromDb();
+  } catch (e) {
+    log("диалоги: " + e.message);
   }
+  activeDialogId = activeDialogId || (dialogs[0] && dialogs[0].id) || null;
+  if (!activeDialogId && dialogs.length === 0) {
+    const created = await createDialogDb();
+    activeDialogId = created.id;
+    dialogs = [created];
+  }
+  if (dialogs.length === 0) {
+    activeDialogId = null;
+    box.innerHTML = "";
+    updateEmptyState();
+    renderDialogsPanel();
+    return;
+  }
+  if (!activeDialogId || !dialogs.some((d) => d.id === activeDialogId)) {
+    activeDialogId = dialogs[0].id;
+  }
+  const current = dialogs.find((d) => d.id === activeDialogId);
+  if (current) renderDialog(current);
+  else renderDialog(dialogs[0]);
+  renderDialogsPanel();
 }
-
-function saveDialogs(data) {
-  try {
-    localStorage.setItem("chat_dialogs", JSON.stringify(data));
-  } catch {}
-}
-
 function currentDialog() {
-  const data = getDialogs();
-  if (!data) return null;
-  return data.dialogs.find((d) => d.id === data.current_dialog_id) || null;
+  return currentDialogData || { id: activeDialogId };
 }
 
-function setCurrentDialog(id) {
-  const data = getDialogs() || { dialogs: [], current_dialog_id: null };
-  data.current_dialog_id = id;
-  saveDialogs(data);
-}
-
-function createDialog(name) {
-  const data = getDialogs() || { dialogs: [], current_dialog_id: null };
-  const d = {
-    id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random(),
-    name: name || generateDialogName(),
-    messages: [],
-    model: currentModelId || "",
-    created_at: Date.now(),
-    updated_at: Date.now(),
-  };
-  data.dialogs.unshift(d);
-  data.current_dialog_id = d.id;
-  saveDialogs(data);
-  return d;
-}
-
-function switchDialog(id) {
-  const data = getDialogs();
-  if (!data) return;
-  const target = data.dialogs.find((d) => d.id === id);
-  if (!target) return;
-  data.current_dialog_id = id;
-  saveDialogs(data);
-  renderDialog(target);
-}
-
-function deleteDialog(id) {
-  const data = getDialogs();
-  if (!data) return;
-  const idx = data.dialogs.findIndex((d) => d.id === id);
-  if (idx < 0) return;
-  const removed = data.dialogs[idx];
-  data.dialogs.splice(idx, 1);
-  if (data.dialogs.length === 0) {
-    data.dialogs.push(createDialog());
+function renderDialog(dialog) {
+  if (!dialog) {
+    box.innerHTML = "";
+    updateEmptyState();
+    currentDialogData = null;
+    return;
   }
-  if (data.current_dialog_id === id) {
-    data.current_dialog_id = removed && removed.id === id ? data.dialogs[0].id : data.current_dialog_id;
-  }
-  saveDialogs(data);
-  const cur = currentDialog();
-  if (cur) renderDialog(cur);
-  else { createDialog(); renderDialog(currentDialog()); }
-  renderDialogsPanel();
+  currentDialogData = dialog;
+  box.innerHTML = "";
+  const msgs = dialog.messages || [];
+  msgs.forEach((m) => {
+    addHistoryMessage(m.role, m.content || "", m.image || null);
+  });
+  box.scrollTop = box.scrollHeight;
+  updateEmptyState();
+  currentModelId = dialog.model || currentModelId;
 }
 
-function renameDialog(id, newName) {
-  const data = getDialogs();
-  if (!data) return;
-  const d = data.dialogs.find((d) => d.id === id);
-  if (!d) return;
-  d.name = newName.trim() || d.name;
-  d.updated_at = Date.now();
-  saveDialogs(data);
-  renderDialogsPanel();
+function renderDialogsPanel() {
+  const panel = $("#dialogsPanel_body");
+  if (!panel) return;
+  loadDialogsFromDb()
+    .then((dialogs) => {
+      dialogs.sort((a, b) => (b.updated_at || 0) - (a.updated_at || 0));
+      if (!dialogs.length) {
+        panel.innerHTML = `<div style="color:var(--muted);text-align:center;padding:20px;">Нет диалогов</div>`;
+        return;
+      }
+      panel.innerHTML = "";
+      dialogs.forEach((d) => {
+        const item = document.createElement("div");
+        item.className = "dialog-item" + (d.id === activeDialogId ? " active" : "");
+        const date = new Date(d.updated_at || Date.now()).toLocaleDateString("ru-RU", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        item.innerHTML = `
+          <div class="dialog-item-main" data-id="${d.id}">
+            <div class="dialog-item-name" title="Нажми, чтобы переименовать">
+              <span class="dialog-name-text">${esc(d.name || "")}</span>
+              <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать">✏️</button>
+            </div>
+            <div class="dialog-item-meta">${date} · ${(d.messages || []).length} сообщ.</div>
+          </div>
+          <button class="dialog-item-del" data-del="${d.id}" title="Удалить">🗑</button>
+        `;
+        const startRename = () => {
+          const nameEl = item.querySelector(".dialog-name-text");
+          if (!nameEl) return;
+          const inp = document.createElement("input");
+          inp.type = "text";
+          inp.value = d.name || "";
+          inp.className = "dialog-rename-input";
+          nameEl.replaceWith(inp);
+          inp.focus();
+          inp.select();
+          const finish = () => {
+            saveDialogToDb({ ...d, name: inp.value || d.name }).then(() => renderDialogsPanel());
+          };
+          inp.addEventListener("blur", finish);
+          inp.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") finish();
+            if (e.key === "Escape") renderDialogsPanel();
+          });
+        };
+        item.querySelector(".dialog-item-main").addEventListener("click", async () => {
+          activeDialogId = d.id;
+          renderDialog(d);
+          renderDialogsPanel();
+        });
+        item.querySelector(".dialog-item-name").addEventListener("dblclick", (e) => {
+          e.stopPropagation();
+          startRename();
+        });
+        item.querySelector(".dialog-item-edit").addEventListener("click", (e) => {
+          e.stopPropagation();
+          startRename();
+        });
+        panel.appendChild(item);
+      });
+      document.querySelectorAll(".dialog-item-del").forEach((btn) => {
+        btn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.del;
+          const ok = await showConfirm("Удалить диалог", "Вы уверены? Этот диалог будет удалён навсегда.");
+          if (!ok) return;
+          await deleteDialogDb(id);
+          if (activeDialogId === id) {
+            activeDialogId = null;
+            await ensureCurrentDialog();
+          } else renderDialogsPanel();
+        });
+      });
+    })
+    .catch((err) => {
+      log("диалоги: " + err.message);
+    });
 }
 
-function autoSaveCurrentDialog() {
-  const dialog = currentDialog();
-  if (!dialog) return;
+function openDialogs() {
+  renderDialogsPanel();
+  $("#dialogs").classList.add("open");
+  $("#dialogs").style.display = "";
+}
+
+function closeDialogs() {
+  $("#dialogs").classList.remove("open");
+}
+
+async function autoSaveCurrentDialog() {
+  if (!activeDialogId) return;
   const msgs = [];
   box.querySelectorAll(".msg").forEach((el) => {
     const role = el.classList.contains("user") ? "user" : "bot";
@@ -188,112 +275,23 @@ function autoSaveCurrentDialog() {
       image: imgEl ? imgEl.src : null,
     });
   });
-  dialog.messages = msgs;
-  dialog.model = currentModelId || dialog.model;
-  dialog.updated_at = Date.now();
-  const data = getDialogs();
-  if (!data) return;
-  const existing = data.dialogs.find((d) => d.id === dialog.id);
-  if (existing) {
-    existing.messages = dialog.messages;
-    existing.model = dialog.model;
-    existing.updated_at = dialog.updated_at;
-  }
-  saveDialogs(data);
-}
-
-function renderDialog(dialog) {
-  if (!dialog) {
-    box.innerHTML = "";
-    updateEmptyState();
-    return;
-  }
-  box.innerHTML = "";
-  dialog.messages.forEach((m) => {
-    addHistoryMessage(m.role, m.content || "", m.image || null);
-  });
-  box.scrollTop = box.scrollHeight;
-  updateEmptyState();
-  currentModelId = dialog.model || currentModelId;
-}
-
-function renderDialogsPanel() {
-  const data = getDialogs();
-  const panel = $("#dialogsPanel_body");
-  if (!panel) return;
-  if (!data || !data.dialogs.length) {
-    panel.innerHTML = `<div style="color:var(--muted);text-align:center;padding:20px;">Нет диалогов</div>`;
-    return;
-  }
-  panel.innerHTML = "";
-  data.dialogs.forEach((d) => {
-    const item = document.createElement("div");
-    item.className = "dialog-item" + (d.id === (getDialogs()?.current_dialog_id) ? " active" : "");
-    const date = new Date(d.updated_at).toLocaleDateString("ru-RU", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    item.innerHTML = `
-      <div class="dialog-item-main" data-id="${d.id}">
-        <div class="dialog-item-name" title="Нажми, чтобы переименовать">
-          <span class="dialog-name-text">${esc(d.name)}</span>
-          <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать">✏️</button>
-        </div>
-        <div class="dialog-item-meta">${date} · ${d.messages.length} сообщ.</div>
-      </div>
-      <button class="dialog-item-del" data-del="${d.id}" title="Удалить">🗑</button>
-    `;
-    const startRename = () => {
-      const nameEl = item.querySelector(".dialog-name-text");
-      if (!nameEl) return;
-      const inp = document.createElement("input");
-      inp.type = "text";
-      inp.value = d.name;
-      inp.className = "dialog-rename-input";
-      nameEl.replaceWith(inp);
-      inp.focus();
-      inp.select();
-      const finish = () => {
-        renameDialog(d.id, inp.value);
-      };
-      inp.addEventListener("blur", finish);
-      inp.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") finish();
-        if (e.key === "Escape") renderDialogsPanel();
+  const dialog = { id: activeDialogId, messages: msgs, model: currentModelId || "", name: "", updated_at: Date.now() };
+  try {
+    const saved = await saveDialogToDb(dialog);
+    if (saved && saved.name) {
+      const items = document.querySelectorAll(".dialog-item");
+      items.forEach((item) => {
+        if (item.querySelector(`[data-id="${saved.id}"]`)) {
+          const nameEl = item.querySelector(".dialog-name-text");
+          if (nameEl && (!nameEl.textContent || nameEl.textContent === "")) nameEl.textContent = saved.name;
+        }
       });
-    };
-    item.querySelector(".dialog-item-main").addEventListener("click", () => switchDialog(d.id));
-    item.querySelector(".dialog-item-name").addEventListener("dblclick", (e) => {
-      e.stopPropagation();
-      startRename();
-    });
-    item.querySelector(".dialog-item-edit").addEventListener("click", (e) => {
-      e.stopPropagation();
-      startRename();
-    });
-    panel.appendChild(item);
-  });
-  document.querySelectorAll(".dialog-item-del").forEach((btn) => {
-    btn.addEventListener("click", async (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.del;
-      const ok = await showConfirm("Удалить диалог", "Вы уверены? Этот диалог будет удалён навсегда.");
-      if (ok) deleteDialog(id);
-    });
-  });
-}
-
-function openDialogs() {
-  renderDialogsPanel();
-  $("#dialogs").classList.add("open");
-  $("#dialogs").style.display = "";
-}
-
-function closeDialogs() {
-  $("#dialogs").classList.remove("open");
+      const title = $("#dialogs_title");
+      if (title && title.dataset.id === saved.id) title.textContent = saved.name;
+    }
+  } catch (e) {
+    log("Не удалось сохранить диалог: " + e.message);
+  }
 }
 
 // --- Markdown rendering (через marked + санитайзер) -------------------
@@ -1121,19 +1119,7 @@ async function auth(devId) {
     if (isAdmin) $("#s_admin").style.display = "inline-block";
     fillSettings(data.settings);
     setStatus("ok");
-    const dialogs = getDialogs();
-    if (dialogs && dialogs.current_dialog_id) {
-      const dialog = dialogs.dialogs.find((d) => d.id === dialogs.current_dialog_id);
-      if (dialog) {
-        renderDialog(dialog);
-      } else {
-        createDialog();
-        renderDialog(currentDialog());
-      }
-    } else {
-      createDialog();
-      renderDialog(currentDialog());
-    }
+    await ensureCurrentDialog();
 
     log("модель: " + (data.settings.selected_model || "—"));
     // Показываем чат
@@ -1480,7 +1466,7 @@ $("#bar").addEventListener("submit", async (e) => { vibClick();
     const systemPromptToSend = ($("#s_prompt")?.value || "").trim();
     const contextLimitFull = $("#s_limit_full")?.checked || false;
     const contextLimit = contextLimitFull ? 9999 : parseInt(($("#s_limit")?.value || "10"), 10);
-    let currentHist = currentDialog()?.messages || [];
+    let currentHist = currentDialogData?.messages || [];
     if (!contextLimitFull && currentHist.length > contextLimit) {
       currentHist = currentHist.slice(-contextLimit);
     }
@@ -2605,12 +2591,14 @@ $("#searchBtn").addEventListener("click", openChatSearch);
 
 $("#newChatBtn").addEventListener("click", async () => { vibClick();
   if (!(await showConfirm("Новый диалог", "Текущий диалог будет сохранён. Продолжить?"))) return;
-  autoSaveCurrentDialog();
-  createDialog();
-  renderDialog(currentDialog());
+  await autoSaveCurrentDialog();
   try {
     await ef("chat", { clear: true });
   } catch {}
+  const created = await createDialogDb();
+  activeDialogId = created.id;
+  currentDialogData = created;
+  renderDialog(created);
   toast("Новый диалог начат", "ok");
 });
 
