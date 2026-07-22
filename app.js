@@ -2360,24 +2360,34 @@ const DEFAULT_TEMPLATES = [
       "Пиши engaging тексты для соцсетей: цепляющий заголовок, 3 пункта, призыв к действию.",
   },
 ];
-function tplLoad() {
+async function tplLoadFromDb() {
   try {
-    const raw = localStorage.getItem("templates");
-    if (raw) return JSON.parse(raw);
+    const data = await ef("settings", { templates_action: "list" }, 120000);
+    if (!data.ok) throw new Error(data.error || "templates list failed");
+    const list = data.templates || [];
+    if (list.length) return list;
   } catch {}
   return JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
 }
-function tplSave(list) {
-  try {
-    localStorage.setItem("templates", JSON.stringify(list));
-  } catch {}
+async function tplSaveToDb(list) {
+  const data = await ef("settings", { templates_action: "save", templates: list }, 120000);
+  if (!data.ok) throw new Error(data.error || "templates save failed");
 }
-let tplList = tplLoad();
+async function tplDeleteFromDb(id) {
+  const data = await ef("settings", { templates_action: "delete", id }, 120000);
+  if (!data.ok) throw new Error(data.error || "templates delete failed");
+}
+let tplList = JSON.parse(JSON.stringify(DEFAULT_TEMPLATES));
 let tplEditingId = null;
+let tplLoaded = false;
 
-function tplRender() {
+async function tplRender() {
   const wrap = $("#tplList");
   if (!wrap) return;
+  if (!tplLoaded) {
+    tplList = await tplLoadFromDb();
+    tplLoaded = true;
+  }
   wrap.innerHTML = "";
   tplList.forEach((t) => {
     const card = document.createElement("div");
@@ -2416,7 +2426,7 @@ function tplCloseEdit() {
   tplEditingId = null;
   $("#tplEdit").style.display = "none";
 }
-function tplSaveEdit() {
+async function tplSaveEdit() {
   const name = ($("#tplEditName").value || "").trim();
   const text = ($("#tplEditText").value || "").trim();
   if (!name || !text) return;
@@ -2431,24 +2441,36 @@ function tplSaveEdit() {
   } else {
     tplList.push({ id: "tpl-" + Date.now(), name, text, recommended: false });
   }
-  tplSave(tplList);
+  try {
+    await tplSaveToDb(tplList);
+  } catch (e) {
+    toast("Не удалось сохранить шаблон: " + e.message, "err");
+  }
   tplCloseEdit();
   tplRender();
 }
-function tplDelete(id) {
+async function tplDelete(id) {
   tplList = tplList.filter((x) => x.id !== id);
-  tplSave(tplList);
+  try {
+    await tplDeleteFromDb(id);
+  } catch (e) {
+    toast("Не удалось удалить шаблон: " + e.message, "err");
+  }
   tplRender();
 }
-function tplReset(id) {
+async function tplReset(id) {
   const t = tplList.find((x) => x.id === id);
   if (!t || !t.originalText) return;
   t.text = t.originalText;
   t.recommended = true;
-  tplSave(tplList);
+  try {
+    await tplSaveToDb(tplList);
+  } catch (e) {
+    toast("Не удалось сбросить шаблон: " + e.message, "err");
+  }
   tplRender();
 }
-function tplAddRecommended() {
+async function tplAddRecommended() {
   const available = DEFAULT_TEMPLATES.filter(
     (d) => !tplList.some((x) => x.name === d.name),
   );
@@ -2457,11 +2479,15 @@ function tplAddRecommended() {
     return;
   }
   available.forEach((t) => tplList.push(JSON.parse(JSON.stringify(t))));
-  tplSave(tplList);
+  try {
+    await tplSaveToDb(tplList);
+  } catch (e) {
+    toast("Не удалось добавить шаблоны: " + e.message, "err");
+  }
   tplRender();
   toast(`Добавлено шаблонов: ${available.length}`, "ok");
 }
-$("#tplList").addEventListener("click", (e) => {
+$("#tplList").addEventListener("click", async (e) => {
   const editBtn = e.target.closest(".tpl-edit");
   const delBtn = e.target.closest(".tpl-del");
   const resetBtn = e.target.closest(".tpl-reset");
@@ -2473,12 +2499,12 @@ $("#tplList").addEventListener("click", (e) => {
   }
   if (delBtn) {
     e.stopPropagation();
-    tplDelete(delBtn.dataset.id);
+    await tplDelete(delBtn.dataset.id);
     return;
   }
   if (resetBtn) {
     e.stopPropagation();
-    tplReset(resetBtn.dataset.id);
+    await tplReset(resetBtn.dataset.id);
     return;
   }
   if (info) {
@@ -2492,8 +2518,12 @@ $("#tpl_add").addEventListener("click", () => {
   $("#tplEditText").value = "";
   $("#tplEdit").style.display = "flex";
 });
-$("#tpl_add_rec").addEventListener("click", tplAddRecommended);
-$("#tplEditSave").addEventListener("click", tplSaveEdit);
+$("#tpl_add_rec").addEventListener("click", async () => {
+  await tplAddRecommended();
+});
+$("#tplEditSave").addEventListener("click", async () => {
+  await tplSaveEdit();
+});
 $("#tplEditCancel").addEventListener("click", tplCloseEdit);
 tplRender();
 
