@@ -38,12 +38,17 @@ async function ef(name, body, ms = 20000) {
   const t = setTimeout(() => ctrl.abort(), ms);
   const url = FN_BASE + "/" + name;
   try {
+    const payload = Object.assign({}, authBody(), body || {});
+    const hasInitData = !!(payload && payload.init_data);
+    const initLen = hasInitData ? String(payload.init_data).length : 0;
+    log("ef " + name + " init=" + hasInitData + " len=" + initLen + " url=" + url);
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(Object.assign(authBody(), body || {})),
+      body: JSON.stringify(payload),
       signal: ctrl.signal,
     });
+    log("ef " + name + " status=" + response.status + " ok=" + response.ok);
     return response;
   } catch (e) {
     const msg = e && e.message ? e.message : String(e);
@@ -1034,23 +1039,50 @@ if (inTelegram) {
   window.Telegram.WebApp.expand();
 }
 function currentInitData() {
-  // 1. Из Telegram WebApp (когда открыто как Mini App)
   if (inTelegram) {
     try {
-      const d = window.Telegram.WebApp.initData || "";
-      if (d) return d;
-    } catch {}
+      const d = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) || "";
+      if (d && d.trim()) {
+        log("initData from WebApp len=" + d.length);
+        return d;
+      }
+    } catch (e) {
+      log("initData WebApp error: " + (e && e.message ? e.message : String(e)));
+    }
   }
-  // 2. Из URL (?init_data=...) — когда открыто как веб/PWA-версия
   try {
     const fromUrl = new URLSearchParams(location.search).get("init_data");
-    if (fromUrl) return fromUrl;
-  } catch {}
+    if (fromUrl) {
+      log("initData from URL len=" + fromUrl.length);
+      return fromUrl;
+    }
+  } catch (e) {
+    log("initData URL error: " + (e && e.message ? e.message : String(e)));
+  }
+  try {
+    const hash = location.hash || "";
+    const marker = "tgWebAppData=";
+    const idx = hash.indexOf(marker);
+    if (idx >= 0) {
+      const raw = decodeURIComponent(hash.slice(idx + marker.length));
+      log("initData from hash len=" + raw.length);
+      return raw;
+    }
+  } catch (e) {
+    log("initData hash error: " + (e && e.message ? e.message : String(e)));
+  }
+  log("initData empty");
   return "";
 }
 function authBody() {
   const initData = currentInitData();
-  return initData ? { init_data: initData } : { user_id: getDevId() };
+  const devId = getDevId();
+  if (initData) {
+    log("authBody: using init_data len=" + initData.length);
+    return { init_data: initData };
+  }
+  log("authBody: using dev_user=" + String(devId));
+  return { user_id: devId };
 }
 
 function getDevId() {
