@@ -1140,24 +1140,6 @@ async function auth(devId) {
       createDialog();
       renderDialog(currentDialog());
     }
-    const cur = currentDialog();
-    if (cur && (!cur.messages || cur.messages.length === 0)) {
-      const hist = (data.history || []).map((m) => ({
-        role: m.role,
-        content: m.content || "",
-        image: m.image || null,
-      }));
-      if (hist.length > 0) {
-        cur.messages = hist;
-        const all = getDialogs();
-        if (all) {
-          const ex = all.dialogs.find((d) => d.id === cur.id);
-          if (ex) { ex.messages = hist; ex.updated_at = Date.now(); }
-        }
-        saveDialogs(all || getDialogs());
-        renderDialog(cur);
-      }
-    }
 
     log("модель: " + (data.settings.selected_model || "—"));
     // Показываем чат
@@ -1459,7 +1441,14 @@ $("#bar").addEventListener("submit", async (e) => { vibClick();
     if (!contextLimitFull && currentHist.length > contextLimit) {
       currentHist = currentHist.slice(-contextLimit);
     }
-    const res = await ef("chat", { message: text, image: imageToSend, system_prompt: systemPromptToSend || undefined, history: currentHist, context_limit_full: contextLimitFull || undefined }, 300000);
+    const chatPayload = {
+      message: text,
+      image: imageToSend,
+      context_limit_full: contextLimitFull || undefined,
+    };
+    if (systemPromptToSend) chatPayload.system_prompt = systemPromptToSend;
+    if (currentHist.length > 0) chatPayload.history = currentHist;
+    const res = await ef("chat", chatPayload, 300000);
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       addMessage("bot", escapeHtml(data.error || "ошибка " + res.status));
@@ -2034,10 +2023,9 @@ async function mbToggleFav(id) {
 }
 async function mbPingGroup(groupKey) {
   if (mbState.pinging[groupKey]) return;
-  const ok = await mbConfirm(
-    "Внимание, это действие тратит большое количество бесплатных запросов. Рекомендуется обновлять список как можно реже.\n\nНа обновление списка требуется в среднем 60 секунд, пожалуйста подождите обновление списка в случае продолжения.",
-    "Продолжить",
-    "Отмена",
+  const ok = await showConfirm(
+    "Внимание",
+    "Внимание, это действие тратит большое количество бесплатных запросов. Рекомендуется обновлять список как можно реже.\n\nНа обновление списка требуется в среднем 60 секунд, пожалуйста подождите обновление списка в случае продолжения."
   );
   if (!ok) return;
   mbState.pinging[groupKey] = true;
@@ -2873,16 +2861,6 @@ function showAlert(title, message) {
     };
     modal.querySelectorAll("[data-close]").forEach((btn) => btn.addEventListener("click", onClose));
     modal.querySelector(".modal-backdrop").addEventListener("click", onClose);
-  });
-}
-
-function mbConfirm(message, okLabel, cancelLabel) {
-  return showConfirm(
-    okLabel ? "Подтверждение" : "Внимание",
-    cancelLabel ? message : message
-  ).then((ok) => {
-    if (ok && okLabel) return true;
-    return false;
   });
 }
 
