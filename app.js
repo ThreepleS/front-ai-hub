@@ -1307,19 +1307,32 @@ const ctxMenu = $("#ctxMenu");
 let ctxMsgEl = null;
 let ctxPressStart = 0;
 let ctxPressStartSel = "";
+let isOpenContextMenu = false;
+let ctxStartX = 0;
+let ctxStartY = 0;
+let ctxMoved = false;
 function hideCtx() {
   ctxMenu.style.display = "none";
   ctxMsgEl = null;
+  isOpenContextMenu = false;
+  ctxMoved = false;
 }
 function showCtx(x, y, msgEl) {
+  if (isOpenContextMenu) return;
   ctxMsgEl = msgEl;
   ctxMenu.style.display = "flex";
+  isOpenContextMenu = true;
   const r = ctxMenu.getBoundingClientRect();
   const w = window.innerWidth,
     h = window.innerHeight;
   ctxMenu.style.left = Math.min(x, w - 200) + "px";
   ctxMenu.style.top = Math.min(y, h - 160) + "px";
 }
+document.addEventListener("pointerdown", (e) => {
+  if (!isOpenContextMenu) return;
+  if (ctxMenu.contains(e.target)) return;
+  hideCtx();
+});
 document.addEventListener("click", (e) => {
   if (!ctxMenu.contains(e.target)) hideCtx();
 });
@@ -1330,47 +1343,43 @@ document.addEventListener("contextmenu", (e) => {
   e.preventDefault();
   showCtx(e.clientX, e.clientY, msg);
 });
-box.addEventListener("mousedown", (e) => {
+box.addEventListener("pointerdown", (e) => {
   const msg = e.target.closest(".msg");
   if (!msg) return;
   const inner = e.target.closest("button, a, code, pre");
   if (inner) return;
   ctxPressStart = Date.now();
   ctxPressStartSel = window.getSelection().toString();
+  ctxStartX = e.clientX;
+  ctxStartY = e.clientY;
+  ctxMoved = false;
 });
-box.addEventListener("touchstart", (e) => {
+box.addEventListener("pointermove", (e) => {
+  if (!ctxPressStart) return;
+  const dx = Math.abs(e.clientX - ctxStartX);
+  const dy = Math.abs(e.clientY - ctxStartY);
+  if (dx > 8 || dy > 8) ctxMoved = true;
+});
+box.addEventListener("pointerup", (e) => {
   const msg = e.target.closest(".msg");
   if (!msg) return;
   const inner = e.target.closest("button, a, code, pre");
   if (inner) return;
-  ctxPressStart = Date.now();
-  ctxPressStartSel = window.getSelection().toString();
-}, { passive: true });
-box.addEventListener("mouseup", (e) => {
-  const msg = e.target.closest(".msg");
-  if (!msg) return;
-  const inner = e.target.closest("button, a, code, pre");
-  if (inner) return;
+  if (ctxMoved) {
+    ctxPressStart = 0;
+    ctxPressStartSel = "";
+    return;
+  }
   const pressDuration = Date.now() - ctxPressStart;
   const selectionChanged = window.getSelection().toString().trim().length > 0 && window.getSelection().toString() !== ctxPressStartSel;
+  if (isOpenContextMenu) {
+    hideCtx();
+    ctxPressStart = 0;
+    ctxPressStartSel = "";
+    return;
+  }
   if (pressDuration < 200 && !selectionChanged && ctxPressStart > 0) {
     showCtx(e.clientX, e.clientY, msg);
-  }
-  ctxPressStart = 0;
-  ctxPressStartSel = "";
-});
-box.addEventListener("touchend", (e) => {
-  const msg = e.target.closest(".msg");
-  if (!msg) return;
-  const inner = e.target.closest("button, a, code, pre");
-  if (inner) return;
-  const pressDuration = Date.now() - ctxPressStart;
-  const selectionChanged = window.getSelection().toString().trim().length > 0 && window.getSelection().toString() !== ctxPressStartSel;
-  if (pressDuration < 200 && !selectionChanged && ctxPressStart > 0) {
-    const touch = e.changedTouches && e.changedTouches[0];
-    if (touch) {
-      showCtx(touch.clientX, touch.clientY, msg);
-    }
   }
   ctxPressStart = 0;
   ctxPressStartSel = "";
