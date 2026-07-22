@@ -1306,6 +1306,8 @@ lb.addEventListener("click", (e) => {
 // --- Context menu (copy / reply / delete) --------------------------
 const ctxMenu = $("#ctxMenu");
 let ctxMsgEl = null;
+let ctxPressStart = 0;
+let ctxPressStartSel = "";
 function hideCtx() {
   ctxMenu.style.display = "none";
   ctxMsgEl = null;
@@ -1325,16 +1327,44 @@ document.addEventListener("click", (e) => {
 document.addEventListener("contextmenu", (e) => {
   const msg = e.target.closest(".msg");
   if (!msg) return;
+  if (window.getSelection().toString().trim().length > 0) return;
   e.preventDefault();
   showCtx(e.clientX, e.clientY, msg);
 });
-box.addEventListener("click", (e) => {
-  const inner = e.target.closest("button, a, code, pre");
-  if (inner) return;
+box.addEventListener("mousedown", (e) => {
   const msg = e.target.closest(".msg");
   if (!msg) return;
-  if (window.getSelection().toString().trim().length > 0) return;
-  showCtx(e.clientX, e.clientY, msg);
+  ctxPressStart = Date.now();
+  ctxPressStartSel = window.getSelection().toString();
+});
+box.addEventListener("touchstart", (e) => {
+  const msg = e.target.closest(".msg");
+  if (!msg) return;
+  ctxPressStart = Date.now();
+  ctxPressStartSel = window.getSelection().toString();
+}, { passive: true });
+box.addEventListener("mouseup", (e) => {
+  const msg = e.target.closest(".msg");
+  if (!msg) return;
+  const pressDuration = Date.now() - ctxPressStart;
+  const selectionChanged = window.getSelection().toString().trim().length > 0 && window.getSelection().toString() !== ctxPressStartSel;
+  const inner = e.target.closest("button, a, code, pre");
+  if (inner) return;
+  if (pressDuration < 200 && !selectionChanged) {
+    showCtx(e.clientX, e.clientY, msg);
+  }
+});
+box.addEventListener("touchend", (e) => {
+  const msg = e.target.closest(".msg");
+  if (!msg) return;
+  const pressDuration = Date.now() - ctxPressStart;
+  const selectionChanged = window.getSelection().toString().trim().length > 0 && window.getSelection().toString() !== ctxPressStartSel;
+  if (pressDuration < 200 && !selectionChanged) {
+    const touch = e.changedTouches && e.changedTouches[0];
+    if (touch) {
+      showCtx(touch.clientX, touch.clientY, msg);
+    }
+  }
 });
 ctxMenu.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
