@@ -2627,16 +2627,21 @@ $("#cs_input").addEventListener("input", (e) =>
 $("#searchBtn").addEventListener("click", openChatSearch);
 
 $("#newChatBtn").addEventListener("click", async () => { vibClick();
-  if (!(await showConfirm("Новый диалог", "Текущий диалог будет сохранён. Продолжить?"))) return;
-  await autoSaveCurrentDialog();
   try {
+    if (!(await showConfirm("Новый диалог", "Текущий диалог будет сохранён. Продолжить?"))) return;
+    await autoSaveCurrentDialog();
     await ef("chat", { clear: true });
-  } catch {}
-  const created = await createDialogDb();
-  activeDialogId = created.id;
-  currentDialogData = created;
-  renderDialog(created);
-  toast("Новый диалог начат", "ok");
+    const created = await createDialogDb();
+    if (!created || !created.id) throw new Error("пустой ответ от сервера при создании диалога");
+    activeDialogId = created.id;
+    currentDialogData = created;
+    renderDialog(created);
+    renderDialogsPanel();
+    toast("Новый диалог начат", "ok");
+  } catch (e) {
+    toast("Не удалось создать новый диалог: " + (e.message || e), "err");
+    log("new chat: " + (e.message || e));
+  }
 });
 
 // --- Sound / Vibration -------------------------------------------------
