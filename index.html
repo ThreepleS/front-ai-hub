@@ -650,5 +650,33 @@
     <script>
       if (window.eruda) eruda.init();
     </script>
+
+    <div id="tourBackdrop" class="tour-backdrop">
+      <div id="tourTooltip" class="tour-tooltip">
+        <div id="tourTooltipTitle" class="tour-tooltip-title"></div>
+        <div id="tourTooltipBody" class="tour-tooltip-body"></div>
+        <div class="tour-tooltip-foot">
+          <button id="tourSkip" class="btn ghost sm">Пропустить</button>
+          <button id="tourNext" class="btn primary sm">Далее</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tourWelcome" class="modal" style="z-index: 300;">
+      <div class="modal-backdrop"></div>
+      <div class="modal-dialog">
+        <div class="modal-head">
+          <b>Добро пожаловать!</b>
+          <button class="modal-close" data-close="tourWelcome">✕</button>
+        </div>
+        <div class="modal-body">
+          Хотите пройти обучение по использованию?
+        </div>
+        <div class="modal-foot">
+          <button class="btn ghost" id="tourNo">Нет</button>
+          <button class="btn primary" id="tourYes">Да</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

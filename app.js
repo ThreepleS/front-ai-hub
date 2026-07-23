@@ -962,7 +962,6 @@ function addMessage(role, html, stats, scroll) {
   if (role === "bot") addCodeCopy(el);
   if (scroll !== false) box.scrollTop = box.scrollHeight;
   updateEmptyState();
-  autoSaveCurrentDialog();
 
   return el;
 }
@@ -1541,6 +1540,7 @@ $("#bar").addEventListener("submit", async (e) => { vibClick();
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       addMessage("bot", escapeHtml(data.error || "ошибка " + res.status));
+      await autoSaveCurrentDialog();
       return;
     }
     const reader = res.body.getReader();
@@ -1606,7 +1606,7 @@ $("#bar").addEventListener("submit", async (e) => { vibClick();
     notify();
   } finally {
     if (sendBtn) sendBtn.classList.remove("typing");
-    saveLocalHistory();
+    await saveLocalHistory();
   }
 });
 
@@ -3034,8 +3034,122 @@ document.querySelectorAll("[data-close]").forEach((btn) => {
   });
 });
 
-function saveLocalHistory() {
-  autoSaveCurrentDialog();
+async function saveLocalHistory() {
+  await autoSaveCurrentDialog();
 }
+
+// --- Onboarding Tour ---------------------------------------------------
+const TOUR_KEY = "has_seen_tutorial";
+
+async function initTour() {
+  if (localStorage.getItem(TOUR_KEY) === "true") return;
+  const welcome = $("#tourWelcome");
+  if (!welcome) return;
+  welcome.classList.add("open");
+
+  const yes = $("#tourYes");
+  const no = $("#tourNo");
+  const cleanup = () => {
+    welcome.classList.remove("open");
+    yes.removeEventListener("click", onYes);
+    no.removeEventListener("click", onNo);
+    const bd = welcome.querySelector(".modal-backdrop");
+    if (bd) bd.removeEventListener("click", onNo);
+    welcome.querySelectorAll("[data-close]").forEach((b) => b.removeEventListener("click", onNo));
+  };
+  const onYes = async () => {
+    cleanup();
+    localStorage.setItem(TOUR_KEY, "true");
+    await runTour();
+  };
+  const onNo = () => {
+    cleanup();
+    localStorage.setItem(TOUR_KEY, "true");
+  };
+  yes.addEventListener("click", onYes);
+  no.addEventListener("click", onNo);
+  const bd = welcome.querySelector(".modal-backdrop");
+  if (bd) bd.addEventListener("click", onNo);
+  welcome.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", onNo));
+}
+
+async function runTour() {
+  const backdrop = $("#tourBackdrop");
+  const tooltip = $("#tourTooltip");
+  const titleEl = $("#tourTooltipTitle");
+  const bodyEl = $("#tourTooltipBody");
+  const nextBtn = $("#tourNext");
+  const skipBtn = $("#tourSkip");
+  if (!backdrop || !tooltip) return;
+
+  const steps = [
+    {
+      target: "header",
+      title: "Верхняя панель",
+      body: "Здесь находятся основные действия: браузер моделей, диалоги, новый чат, поиск и настройки.",
+    },
+    {
+      target: "#bar",
+      title: "Ввод сообщения",
+      body: "В этой области можно ввести текст или прикрепить фото, чтобы отправить сообщение модели.",
+    },
+  ];
+
+  let currentStep = 0;
+
+  function showStep(index) {
+    if (index >= steps.length) {
+      closeTour();
+      return;
+    }
+    const step = steps[index];
+    const target = $(step.target);
+    if (!target) {
+      closeTour();
+      return;
+    }
+
+    document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
+
+    target.classList.add("tour-spotlight");
+    titleEl.textContent = step.title;
+    bodyEl.textContent = step.body;
+    nextBtn.textContent = index === steps.length - 1 ? "Завершить" : "Далее";
+
+    const rect = target.getBoundingClientRect();
+    let top = rect.bottom + 12;
+    let left = rect.left + rect.width / 2 - 160;
+
+    if (top + 160 > window.innerHeight) {
+      top = rect.top - 160;
+    }
+    if (left < 12) left = 12;
+    if (left + 320 > window.innerWidth) left = window.width - 332;
+
+    tooltip.style.top = top + "px";
+    tooltip.style.left = left + "px";
+    backdrop.classList.add("active");
+    tooltip.style.display = "block";
+    currentStep = index;
+  }
+
+  function closeTour() {
+    backdrop.classList.remove("active");
+    tooltip.style.display = "none";
+    document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
+    nextBtn.removeEventListener("click", onNext);
+    skipBtn.removeEventListener("click", onSkip);
+  }
+
+  const onNext = () => showStep(currentStep + 1);
+  const onSkip = () => closeTour();
+
+  nextBtn.addEventListener("click", onNext);
+  skipBtn.addEventListener("click", onSkip);
+
+  showStep(0);
+}
+
+setTimeout(() => initTour(), 600);
 
  
