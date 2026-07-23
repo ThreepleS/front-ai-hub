@@ -1196,7 +1196,11 @@ async function auth(devId) {
     updateEmptyState();
     if (data.needs_key) {
       log("⚠️ укажи API-ключ в настройках");
-      openSettings("keys");
+      if (!tourActive) {
+        openSettings("keys");
+      } else {
+        deferredOpenSettings = true;
+      }
     }
     return true;
   } catch (e) {
@@ -2773,6 +2777,11 @@ function exportChat(format) {
 }
 $("#s_export_md").addEventListener("click", () => exportChat("md"));
 $("#s_export_txt").addEventListener("click", () => exportChat("txt"));
+$("#s_replay_tour").addEventListener("click", () => {
+  localStorage.removeItem(TOUR_KEY);
+  closeSettings();
+  setTimeout(() => initTour(), 120);
+});
 
 $("#s_pwa").addEventListener("click", async () => {
   const status = $("#s_status");
@@ -3052,12 +3061,20 @@ async function saveLocalHistory() {
 const TOUR_KEY = "has_seen_tutorial";
 let tourActive = false;
 let queuedAuthError = null;
+let deferredOpenSettings = false;
 
 function showQueuedAuthErrorIfAny() {
   if (queuedAuthError) {
     const { title, message } = queuedAuthError;
     queuedAuthError = null;
     showAlert(title, message);
+  }
+}
+
+function openDeferredSettingsIfAny() {
+  if (deferredOpenSettings) {
+    deferredOpenSettings = false;
+    openSettings("keys");
   }
 }
 
@@ -3080,6 +3097,7 @@ async function initTour() {
     if (!run) {
       tourActive = false;
       showQueuedAuthErrorIfAny();
+      openDeferredSettingsIfAny();
     }
   };
   const onYes = async () => {
@@ -3166,6 +3184,7 @@ async function runTour() {
     nextBtn.removeEventListener("click", onNext);
     skipBtn.removeEventListener("click", onSkip);
     showQueuedAuthErrorIfAny();
+    openDeferredSettingsIfAny();
   }
 
   const onNext = () => showStep(currentStep + 1);

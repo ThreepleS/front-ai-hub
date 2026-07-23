@@ -418,6 +418,19 @@
                 >🛠 Админ-панель</a
               >
             </div>
+            <div class="settings-card">
+              <div class="settings-card-head">
+                <div>
+                  <div class="section-title">Обучение</div>
+                  <div class="settings-card-desc">Пройти вводный тур заново.</div>
+                </div>
+              </div>
+              <div class="export-btns">
+                <button id="s_replay_tour" class="btn ghost sm" type="button">
+                  🔁 Повторить обучение
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -643,13 +656,6 @@
         </button>
       </div>
     </form>
-    <script src="./sw-register.js"></script>
-    <script src="./app.js?v=20260723_0400"></script>
-    <!-- DEV ONLY: мобильная консоль отладки (eruda). Не удалять временно. -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>
-      if (window.eruda) eruda.init();
-    </script>
 
     <div id="tourBackdrop" class="tour-backdrop">
       <div id="tourTooltip" class="tour-tooltip">
@@ -678,5 +684,12 @@
         </div>
       </div>
     </div>
+    <script src="./sw-register.js"></script>
+    <script src="./app.js?v=20260723_0400"></script>
+    <!-- DEV ONLY: мобильная консоль отладки (eruda). Не удалять временно. -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+      if (window.eruda) eruda.init();
+    </script>
   </body>
 </html>
