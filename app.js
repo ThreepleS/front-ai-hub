@@ -1186,7 +1186,23 @@ async function auth(devId) {
     if (isAdmin) $("#s_admin").style.display = "inline-block";
     fillSettings(data.settings);
     setStatus("ok");
-    await ensureCurrentDialog();
+
+    if (data.needs_key && !tourActive) {
+      const dialogs = await loadDialogsFromDb();
+      if (dialogs.length === 0 && localStorage.getItem(TOUR_KEY) === "true") {
+        localStorage.removeItem(TOUR_KEY);
+        deferredOpenSettings = true;
+        await initTour();
+      } else {
+        await ensureCurrentDialog();
+        openSettings("keys");
+      }
+    } else {
+      await ensureCurrentDialog();
+      if (data.needs_key && tourActive) {
+        deferredOpenSettings = true;
+      }
+    }
 
     log("модель: " + (data.settings.selected_model || "—"));
     // Показываем чат
@@ -1194,21 +1210,6 @@ async function auth(devId) {
     $("#bar").style.display = "";
     $("#vision").style.display = "";
     updateEmptyState();
-    if (data.needs_key) {
-      log("⚠️ укажи API-ключ в настройках");
-      if (!tourActive) {
-        const dialogs = await loadDialogsFromDb();
-        if (dialogs.length === 0 && localStorage.getItem(TOUR_KEY) === "true") {
-          localStorage.removeItem(TOUR_KEY);
-          deferredOpenSettings = true;
-          await initTour();
-        } else {
-          openSettings("keys");
-        }
-      } else {
-        deferredOpenSettings = true;
-      }
-    }
     return true;
   } catch (e) {
     log("⚠️ сервер вернул не-JSON: " + String(e));
