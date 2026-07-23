@@ -41,7 +41,14 @@ async function ef(name, body, ms = 20000) {
     const payload = Object.assign({}, authBody(), body || {});
     const hasInitData = !!(payload && payload.init_data);
     const initLen = hasInitData ? String(payload.init_data).length : 0;
+    if (!hasInitData && name !== "auth") {
+      const err = new Error("ef " + name + ": init_data missing");
+      log(err.message);
+      console.error("[ef]", err.message, { url, payloadKeys: Object.keys(payload) });
+      throw err;
+    }
     log("ef " + name + " init=" + hasInitData + " len=" + initLen + " url=" + url);
+    console.debug("[ef]", name, url, { hasInitData, initLen, bodyKeys: Object.keys(body || {}) });
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -49,10 +56,12 @@ async function ef(name, body, ms = 20000) {
       signal: ctrl.signal,
     });
     log("ef " + name + " status=" + response.status + " ok=" + response.ok);
+    console.debug("[ef]", name, "status", response.status, response.ok);
     return response;
   } catch (e) {
     const msg = e && e.message ? e.message : String(e);
     log("ef " + name + " failed: " + msg + " url=" + url);
+    console.error("[ef]", name, "failed", e, url);
     throw e;
   } finally {
     clearTimeout(t);
@@ -1064,7 +1073,9 @@ function currentInitData() {
     const marker = "tgWebAppData=";
     const idx = hash.indexOf(marker);
     if (idx >= 0) {
-      const raw = decodeURIComponent(hash.slice(idx + marker.length));
+      let raw = decodeURIComponent(hash.slice(idx + marker.length));
+      const amp = raw.indexOf("&");
+      if (amp >= 0) raw = raw.slice(0, amp);
       log("initData from hash len=" + raw.length);
       return raw;
     }
