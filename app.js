@@ -1161,7 +1161,11 @@ async function auth(devId) {
     const tip =
       "Не удалось достучаться до сервера. Проверь интернет и адрес Functions.";
     log("⚠️ " + tip);
-    await showAlert("Ошибка подключения", "⚠️ " + tip);
+    if (!tourActive) {
+      await showAlert("Ошибка подключения", "⚠️ " + tip);
+    } else {
+      queuedAuthError = { title: "Ошибка подключения", message: "⚠️ " + tip };
+    }
     setStatus("err");
     return false;
   }
@@ -1169,7 +1173,11 @@ async function auth(devId) {
     const data = await res.json();
     if (!data.ok) {
       log(data.error || "нет доступа");
-      await showAlert("Ошибка", "⚠️ " + (data.error || "нет доступа"));
+      if (!tourActive) {
+        await showAlert("Ошибка", "⚠️ " + (data.error || "нет доступа"));
+      } else {
+        queuedAuthError = { title: "Ошибка", message: "⚠️ " + (data.error || "нет доступа") };
+      }
       setStatus("err");
       return false;
     }
@@ -3042,30 +3050,45 @@ async function saveLocalHistory() {
 
 // --- Onboarding Tour ---------------------------------------------------
 const TOUR_KEY = "has_seen_tutorial";
+let tourActive = false;
+let queuedAuthError = null;
+
+function showQueuedAuthErrorIfAny() {
+  if (queuedAuthError) {
+    const { title, message } = queuedAuthError;
+    queuedAuthError = null;
+    showAlert(title, message);
+  }
+}
 
 async function initTour() {
   if (localStorage.getItem(TOUR_KEY) === "true") return;
   const welcome = $("#tourWelcome");
   if (!welcome) return;
+  tourActive = true;
   welcome.classList.add("open");
 
   const yes = $("#tourYes");
   const no = $("#tourNo");
-  const cleanup = () => {
+  const cleanup = (run = false) => {
     welcome.classList.remove("open");
     yes.removeEventListener("click", onYes);
     no.removeEventListener("click", onNo);
     const bd = welcome.querySelector(".modal-backdrop");
     if (bd) bd.removeEventListener("click", onNo);
     welcome.querySelectorAll("[data-close]").forEach((b) => b.removeEventListener("click", onNo));
+    if (!run) {
+      tourActive = false;
+      showQueuedAuthErrorIfAny();
+    }
   };
   const onYes = async () => {
-    cleanup();
+    cleanup(true);
     localStorage.setItem(TOUR_KEY, "true");
     await runTour();
   };
   const onNo = () => {
-    cleanup();
+    cleanup(false);
     localStorage.setItem(TOUR_KEY, "true");
   };
   yes.addEventListener("click", onYes);
@@ -3136,11 +3159,13 @@ async function runTour() {
   }
 
   function closeTour() {
+    tourActive = false;
     backdrop.classList.remove("active");
     tooltip.style.display = "none";
     document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
     nextBtn.removeEventListener("click", onNext);
     skipBtn.removeEventListener("click", onSkip);
+    showQueuedAuthErrorIfAny();
   }
 
   const onNext = () => showStep(currentStep + 1);
