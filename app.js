@@ -1073,9 +1073,11 @@ function currentInitData() {
     const marker = "tgWebAppData=";
     const idx = hash.indexOf(marker);
     if (idx >= 0) {
-      let raw = decodeURIComponent(hash.slice(idx + marker.length));
-      const amp = raw.indexOf("&");
-      if (amp >= 0) raw = raw.slice(0, amp);
+      const afterMarker = hash.slice(idx + marker.length);
+      const ampIdx = afterMarker.indexOf("&");
+      const raw = ampIdx >= 0
+        ? decodeURIComponent(afterMarker.slice(0, ampIdx))
+        : decodeURIComponent(afterMarker);
       log("initData from hash len=" + raw.length);
       return raw;
     }
