@@ -3062,7 +3062,7 @@ function showQueuedAuthErrorIfAny() {
 }
 
 async function initTour() {
-  if (localStorage.getItem(TOUR_KEY) === "true") return;
+  if (localStorage.getItem(TOUR_KEY) === "true" && new URLSearchParams(location.search).get("tour") !== "1") return;
   const welcome = $("#tourWelcome");
   if (!welcome) return;
   tourActive = true;
