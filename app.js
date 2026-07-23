@@ -2910,6 +2910,8 @@ async function tryAutoAdmin() {
   $("#devbar").style.display = "flex";
 }
 
+initTour();
+
 (async () => {
   try {
     buildKeyRows();
@@ -3149,7 +3151,5 @@ async function runTour() {
 
   showStep(0);
 }
-
-setTimeout(() => initTour(), 600);
 
  
