@@ -1197,7 +1197,14 @@ async function auth(devId) {
     if (data.needs_key) {
       log("⚠️ укажи API-ключ в настройках");
       if (!tourActive) {
-        openSettings("keys");
+        const dialogs = await loadDialogsFromDb();
+        if (dialogs.length === 0 && localStorage.getItem(TOUR_KEY) === "true") {
+          localStorage.removeItem(TOUR_KEY);
+          deferredOpenSettings = true;
+          await initTour();
+        } else {
+          openSettings("keys");
+        }
       } else {
         deferredOpenSettings = true;
       }
