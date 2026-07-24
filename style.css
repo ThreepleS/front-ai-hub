@@ -2582,7 +2582,7 @@ textarea {
   display: block;
   pointer-events: auto;
 }
-.tour-backdrop .tour-tooltip {
+.tour-tooltip {
   position: absolute;
   z-index: 15003;
   display: none;
@@ -2594,6 +2594,7 @@ textarea {
   box-shadow: var(--shadow);
   backdrop-filter: blur(12px);
   animation: fadeUp 0.25s ease;
+  pointer-events: auto;
 }
 .tour-backdrop.active .tour-tooltip {
   display: block;
@@ -2619,17 +2620,28 @@ textarea {
   position: fixed;
   inset: 0;
   z-index: 15001;
-  pointer-events: auto;
+  pointer-events: none;
   display: none;
   background: rgba(0, 0, 0, 0.75);
 }
 .tour-backdrop.active .tour-overlay {
   display: block;
 }
+.tour-skip-wrap {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 15004;
+  display: none;
+}
+.tour-backdrop.active .tour-skip-wrap {
+  display: block;
+}
 .tour-spotlight {
   position: relative !important;
   z-index: 15002 !important;
   border-radius: 12px !important;
+  pointer-events: auto !important;
   animation: tourPulse 1.8s ease-in-out infinite !important;
 }
 .tour-spotlight::after {

@@ -3137,13 +3137,13 @@ async function runTour() {
   const bodyEl = $("#tourTooltipBody");
   const nextBtn = $("#tourNext");
   const skipBtn = $("#tourSkip");
-  if (!backdrop || !tooltip || !overlay) return;
+  if (!backdrop || !tooltip || !overlay || !skipBtn) return;
 
   const steps = [
     {
       target: "header",
       title: "Добро пожаловать в приложение",
-      body: "Это верхняя панель. Здесь можно открыть браузер моделей, перейти к диалогам, начать новый чат, найти что-то в истории или зайти в настройки.",
+      body: "Это верхняя панель. Здесь можно открыть браузер моделей, перейти к диалогам, начать новый чат, найти что-то в истории или зайти в настройки. Нажми «Далее», чтобы продолжить.",
     },
     {
       target: "#models",
@@ -3172,9 +3172,8 @@ async function runTour() {
     },
     {
       target: "#gear",
-      title: "Настройки",
-      body: "Нажми на эту кнопку, чтобы открыть настройки. Там собрано всё: модель по умолчанию, системный промпт, лимит контекста, тема оформления, звуки и вибрация. Во вкладке «Ключи» добавляется API-ключ для работы чата.",
-      clickToAdvance: true,
+      title: "Открой настройки",
+      body: "Нажми на шестерёнку здесь — откроются настройки. Я покажу, где вставить API-ключ, чтобы чат начал работать. Теперь клики по подсвечиваемым элементам работают во время тура.",
     },
     {
       target: "#s_keys",
@@ -3235,11 +3234,6 @@ async function runTour() {
     titleEl.textContent = step.title;
     bodyEl.textContent = step.body;
     nextBtn.textContent = index === steps.length - 1 ? "Завершить" : "Далее";
-    if (step.clickToAdvance) {
-      nextBtn.style.display = "none";
-    } else {
-      nextBtn.style.display = "";
-    }
 
     const rect = target.getBoundingClientRect();
     console.debug("[tour] step " + index + " target=" + step.target + " title=" + step.title + " rect=" + JSON.stringify({x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.width), h: Math.round(rect.height)}));
@@ -3281,14 +3275,16 @@ async function runTour() {
   const tourClickHandler = (e) => {
     if (!tourActive) return;
     const step = steps[currentStep];
-    if (!step || !step.clickToAdvance) return;
+    if (!step) return;
     const target = $(step.target);
     if (!target) return;
-    if (target.contains(e.target)) {
-      setTimeout(() => advanceTour(), 120);
+    if (target.contains(e.target) || e.target === target) {
+      e.preventDefault();
+      e.stopPropagation();
+      setTimeout(() => advanceTour(), 80);
     }
   };
-  document.addEventListener("click", tourClickHandler);
+  document.addEventListener("click", tourClickHandler, true);
 
   const tourResizeHandler = () => {
     if (!tourActive) return;
