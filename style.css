@@ -2636,6 +2636,12 @@ textarea {
 .tour-backdrop.active .tour-skip-wrap {
   display: block;
 }
+.tour-backdrop.tour-settings-mode {
+  pointer-events: none;
+}
+.tour-backdrop.tour-settings-mode .tour-overlay {
+  background: transparent;
+}
 .tour-spotlight {
   position: relative !important;
   z-index: 15002 !important;

@@ -3240,7 +3240,7 @@ async function runTour() {
       return;
     }
 
-    const isSettingsTarget = SETTINGS_TARGETS.has(step.target) || step.target.startsWith("#s_");
+    const isSettingsTarget = step.target === "#settings" || step.target.startsWith("#s_");
     const settingsMode = isSettingsTarget && $("#settings").classList.contains("open");
 
     if (step.openSettingsBefore && !settingsOpenedForTour) {
@@ -3248,6 +3248,12 @@ async function runTour() {
       settingsOpenedForTour = true;
       setTimeout(() => showStep(index), 150);
       return;
+    }
+
+    if (settingsMode) {
+      backdrop.classList.add("tour-settings-mode");
+    } else {
+      backdrop.classList.remove("tour-settings-mode");
     }
 
     titleEl.textContent = step.title;
@@ -3271,9 +3277,10 @@ async function runTour() {
 
   function closeTour() {
     tourActive = false;
-    backdrop.classList.remove("active");
+    backdrop.classList.remove("active", "tour-settings-mode");
     tooltip.style.display = "none";
     overlay.style.clipPath = "";
+    overlay.style.background = "";
     document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
     nextBtn.removeEventListener("click", onNext);
     skipBtn.removeEventListener("click", onSkip);
@@ -3283,6 +3290,7 @@ async function runTour() {
     openDeferredSettingsIfAny();
     nextBtn.style.display = "";
     currentStep = 0;
+    settingsOpenedForTour = false;
   }
 
   const onNext = () => showStep(currentStep + 1);
