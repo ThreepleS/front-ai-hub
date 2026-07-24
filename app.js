@@ -3173,13 +3173,8 @@ async function runTour() {
     {
       target: "#gear",
       title: "Настройки",
-      body: "Сюда можно попасть в любой момент. Там собрано всё: модель по умолчанию, системный промпт, лимит контекста, тема оформления, звуки и вибрация. Сначала рекомендую зайти во вкладку «Ключи».",
-    },
-    {
-      target: "#settings",
-      title: "Настроим приложение вместе",
-      body: "Сейчас я открою настройки и покажу самое главное — где вставить API-ключ, чтобы чат начал работать. Следуй за подсказками.",
-      openSettingsBefore: true,
+      body: "Нажми на эту кнопку, чтобы открыть настройки. Там собрано всё: модель по умолчанию, системный промпт, лимит контекста, тема оформления, звуки и вибрация. Во вкладке «Ключи» добавляется API-ключ для работы чата.",
+      clickToAdvance: true,
     },
     {
       target: "#s_keys",
@@ -3189,7 +3184,6 @@ async function runTour() {
   ];
 
   let currentStep = 0;
-  let settingsOpenedForTour = false;
 
   function positionTooltip(rect) {
     const tooltipRect = tooltip.getBoundingClientRect();
@@ -3236,20 +3230,28 @@ async function runTour() {
       return;
     }
 
-    if (step.openSettingsBefore && !settingsOpenedForTour) {
-      openSettings("keys");
-      settingsOpenedForTour = true;
-    }
-
     titleEl.textContent = step.title;
     bodyEl.textContent = step.body;
     nextBtn.textContent = index === steps.length - 1 ? "Завершить" : "Далее";
+    if (step.clickToAdvance) {
+      nextBtn.style.display = "none";
+    } else {
+      nextBtn.style.display = "";
+    }
 
     const rect = target.getBoundingClientRect();
     applySpotlight(rect);
     backdrop.classList.add("active");
     tooltip.style.display = "block";
     currentStep = index;
+  }
+
+  function advanceTour() {
+    if (currentStep < steps.length - 1) {
+      showStep(currentStep + 1);
+    } else {
+      closeTour();
+    }
   }
 
   function closeTour() {
@@ -3262,10 +3264,7 @@ async function runTour() {
     skipBtn.removeEventListener("click", onSkip);
     showQueuedAuthErrorIfAny();
     openDeferredSettingsIfAny();
-    if (settingsOpenedForTour && $("#settings").classList.contains("open")) {
-      closeSettings();
-      settingsOpenedForTour = false;
-    }
+    nextBtn.style.display = "";
   }
 
   const onNext = () => showStep(currentStep + 1);
@@ -3273,6 +3272,18 @@ async function runTour() {
 
   nextBtn.addEventListener("click", onNext);
   skipBtn.addEventListener("click", onSkip);
+
+  const tourClickHandler = (e) => {
+    if (!tourActive) return;
+    const step = steps[currentStep];
+    if (!step || !step.clickToAdvance) return;
+    const target = $(step.target);
+    if (!target) return;
+    if (target.contains(e.target)) {
+      setTimeout(() => advanceTour(), 120);
+    }
+  };
+  document.addEventListener("click", tourClickHandler);
 
   window.addEventListener("resize", () => {
     if (!tourActive) return;

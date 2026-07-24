@@ -2619,12 +2619,12 @@ textarea {
   position: fixed;
   inset: 0;
   z-index: 15001;
-  pointer-events: none;
+  pointer-events: auto;
   display: none;
+  background: rgba(0, 0, 0, 0.75);
 }
 .tour-backdrop.active .tour-overlay {
   display: block;
-  pointer-events: auto;
 }
 .tour-spotlight {
   position: relative !important;
