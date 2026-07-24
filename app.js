@@ -2877,10 +2877,17 @@ $("#s_pwa").addEventListener("click", async () => {
 // --- Gear / dev login ------------------------------------------------
 function openSettings(tab = null) {
   mbClose();
-  $("#settings").classList.add("open");
-  if (tourActive) {
+  const settingsEl = $("#settings");
+  if (settingsEl) {
+    settingsEl.classList.add("open");
     const backdrop = $("#tourBackdrop");
-    if (backdrop) backdrop.classList.add("tour-settings-mode");
+    if (tourActive && backdrop) {
+      backdrop.classList.add("tour-settings-mode");
+      const overlay = $("#tourOverlay");
+      if (overlay) {
+        overlay.style.display = "none";
+      }
+    }
   }
   $("#messages").style.display = "none";
   if ($("#emptyState")) $("#emptyState").style.display = "none";
