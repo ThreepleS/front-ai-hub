@@ -1192,7 +1192,7 @@ async function auth(devId) {
       if (dialogs.length === 0) {
         localStorage.removeItem(TOUR_KEY);
         deferredOpenSettings = true;
-        await initTour();
+        await initTour(true);
       } else {
         await ensureCurrentDialog();
         openSettings("keys");
@@ -2336,6 +2336,7 @@ $("#s_save").addEventListener("click", async () => { vibClick();
     PROVIDERS.forEach((p) => {
       $("#s_key_" + p).value = "";
     });
+    await loadKeyInfo();
     log("модель: " + data.settings.selected_model);
   } catch (err) {
     status.style.color = "#e06b6b";
@@ -2788,7 +2789,7 @@ $("#s_export_txt").addEventListener("click", () => exportChat("txt"));
 $("#s_replay_tour").addEventListener("click", () => {
   localStorage.removeItem(TOUR_KEY);
   closeSettings();
-  setTimeout(() => initTour(), 120);
+  setTimeout(() => initTour(true), 120);
 });
 
 $("#s_pwa").addEventListener("click", async () => {
@@ -2934,8 +2935,6 @@ async function tryAutoAdmin() {
   }
   $("#devbar").style.display = "flex";
 }
-
-initTour();
 
 (async () => {
   try {
@@ -3086,8 +3085,8 @@ function openDeferredSettingsIfAny() {
   }
 }
 
-async function initTour() {
-  if (localStorage.getItem(TOUR_KEY) === "true" && new URLSearchParams(location.search).get("tour") !== "1") return;
+async function initTour(force = false) {
+  if (!force && new URLSearchParams(location.search).get("tour") !== "1") return;
   const welcome = $("#tourWelcome");
   if (!welcome) return;
   tourActive = true;
@@ -3102,6 +3101,7 @@ async function initTour() {
     const bd = welcome.querySelector(".modal-backdrop");
     if (bd) bd.removeEventListener("click", onNo);
     welcome.querySelectorAll("[data-close]").forEach((b) => b.removeEventListener("click", onNo));
+    localStorage.setItem(TOUR_KEY, "true");
     if (!run) {
       tourActive = false;
       showQueuedAuthErrorIfAny();
@@ -3110,12 +3110,10 @@ async function initTour() {
   };
   const onYes = async () => {
     cleanup(true);
-    localStorage.setItem(TOUR_KEY, "true");
     await runTour();
   };
   const onNo = () => {
     cleanup(false);
-    localStorage.setItem(TOUR_KEY, "true");
   };
   yes.addEventListener("click", onYes);
   no.addEventListener("click", onNo);
