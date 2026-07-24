@@ -1191,10 +1191,10 @@ async function auth(devId) {
       const historyEmpty = Array.isArray(data.history) && data.history.length === 0;
       const seen = localStorage.getItem(TOUR_KEY) === "true";
       console.debug("[auth] needs_key=" + data.needs_key + " historyEmpty=" + historyEmpty + " seen=" + seen);
-      if (historyEmpty && seen) {
+      if (historyEmpty || !seen) {
         localStorage.removeItem(TOUR_KEY);
         deferredOpenSettings = true;
-        console.debug("[auth] triggering tour for fresh state");
+        console.debug("[auth] triggering tour for fresh or first-time user");
         await initTour(true);
       } else {
         await ensureCurrentDialog();
@@ -3142,12 +3142,42 @@ async function runTour() {
     {
       target: "header",
       title: "Верхняя панель",
-      body: "Здесь находятся основные действия: браузер моделей, диалоги, новый чат, поиск и настройки.",
+      body: "Главное меню приложения. Здесь можно выбрать модель, открыть список диалогов, начать новый чат, найти что-то в истории или зайти в настройки.",
+    },
+    {
+      target: "#models",
+      title: "Браузер моделей",
+      body: "Здесь выбирается модель ИИ. Вверху можно фильтровать по провайдеру: OpenRouter, OpenAI, Gemini, Groq, HuggingFace, Venice AI. Провайдер «Рекомендуемые модели» появится позже. Список моделей автоматически обновляется, если сервер возвращает свежий каталог.",
+    },
+    {
+      target: "#dialogsBtn",
+      title: "Диалоги",
+      body: "Открывает список всех диалогов. Ты можешь переключаться между ними, а также удалять ненужные.",
+    },
+    {
+      target: "#newChatBtn",
+      title: "Новый чат",
+      body: "Создаёт новый диалог. История переписки сохраняется отдельно для каждого чата.",
+    },
+    {
+      target: "#searchBtn",
+      title: "Поиск",
+      body: "Позволяет быстро найти сообщение в текущем диалоге по ключевым словам.",
     },
     {
       target: "#bar",
       title: "Ввод сообщения",
       body: "В этой области можно ввести текст или прикрепить фото, чтобы отправить сообщение модели.",
+    },
+    {
+      target: "#settings",
+      title: "Настройки",
+      body: "В настройках есть вкладки: модели, промпт, ключи и прочее. Рекомендую сначала зайти во вкладку «Ключи» и добавить API-ключ своего провайдера, чтобы начать общение.",
+    },
+    {
+      target: "#s_keys",
+      title: "API-ключи",
+      body: "Здесь добавляются ключи для провайдеров. Сохрани нужный ключ, иначе чат не сможет отправлять запросы к модели.",
     },
   ];
 

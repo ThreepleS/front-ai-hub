@@ -2619,5 +2619,20 @@ textarea {
   position: relative !important;
   z-index: 15002 !important;
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7) !important;
+  border-radius: 12px !important;
+  outline: 2px solid rgba(255, 255, 255, 0.8) !important;
+  animation: tourPulse 1.8s ease-in-out infinite !important;
+}
+
+@keyframes tourPulse {
+  0%,
+  100% {
+    outline-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 0 6px rgba(255, 255, 255, 0);
+  }
+  50% {
+    outline-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 0 12px rgba(255, 255, 255, 0.35);
+  }
 }
 
