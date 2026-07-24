@@ -1188,8 +1188,8 @@ async function auth(devId) {
     setStatus("ok");
 
     if (data.needs_key && !tourActive) {
-      const dialogs = await loadDialogsFromDb();
-      if (dialogs.length === 0 && localStorage.getItem(TOUR_KEY) === "true") {
+      const dialogs = await loadDialogsFromDb().catch(() => []);
+      if (dialogs.length === 0) {
         localStorage.removeItem(TOUR_KEY);
         deferredOpenSettings = true;
         await initTour();
