@@ -2798,6 +2798,10 @@ $("#s_replay_tour").addEventListener("click", () => {
   closeSettings();
   setTimeout(() => initTour(true), 120);
 });
+$("#s_keys_help").addEventListener("click", (e) => {
+  e.preventDefault();
+  window.open("https://cat-penguin-ac7.notion.site/API-3a753a5bca1a808bb9b6e2f4be78d865?source=copy_link", "_blank", "noopener,noreferrer");
+});
 
 $("#s_pwa").addEventListener("click", async () => {
   const status = $("#s_status");
