@@ -2878,6 +2878,10 @@ $("#s_pwa").addEventListener("click", async () => {
 function openSettings(tab = null) {
   mbClose();
   $("#settings").classList.add("open");
+  if (tourActive) {
+    const backdrop = $("#tourBackdrop");
+    if (backdrop) backdrop.classList.add("tour-settings-mode");
+  }
   $("#messages").style.display = "none";
   if ($("#emptyState")) $("#emptyState").style.display = "none";
   $("#attach").style.display = "none";
