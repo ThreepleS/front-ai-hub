@@ -7,6 +7,7 @@
       content="width=device-width, initial-scale=1, viewport-fit=cover"
     />
     <meta name="referrer" content="no-referrer" />
+    <script src="https://unpkg.com/lucide@latest"></script>
     <meta
       http-equiv="Cache-Control"
       content="no-cache, no-store, must-revalidate"
@@ -24,54 +25,6 @@
     <script src="marked.min.js"></script>
   </head>
   <body>
-    <svg style="display:none">
-      <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm7.43-4.1a.6.6 0 0 1 .07.51l-.2 2.1a2 2 0 0 1-1.66 1.66l-2.1.2a.6.6 0 0 1-.56-.23l-1.3-1.56a.6.6 0 0 0-.11-.08l-2.2.93a.6.6 0 0 1-.74-.33l-.93-2.2a.6.6 0 0 0-.08-.11L9.3 10a.6.6 0 0 1-.23-.56l.2-2.1a2 2 0 0 1 1.66-1.66l2.1-.2a.6.6 0 0 1 .56.23l1.3 1.56a.6.6 0 0 0 .11.08l2.2-.93a.6.6 0 0 1 .74.33l.93 2.2a.6.6 0 0 0 .08.11z"/></symbol>
-      <symbol id="icon-close" viewBox="0 0 24 24"><path d="M18.3 5.7a1 1 0 0 0-1.4 0L12 10.6 7.1 5.7a1 1 0 0 0-1.4 1.4L10.6 12l-3.9 3.9a1 1 0 1 0 1.4 1.4L12 13.4l3.9 3.9a1 1 0 1 0 1.4-1.4L13.4 12z"/></symbol>
-      <symbol id="icon-search" viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3A7.2 7.2 0 0 0 15 10a7 7 0 1 0-7 7 7 7 0 0 0 4.9-2l.3.3v.8l5 5 1.5-1.5zm-6 0a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></symbol>
-      <symbol id="icon-dialogs" viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2m0 14H6l-2 2V4h16z"/></symbol>
-      <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M11 11V7h2v4h4v2h-4v4h-2v-4H7v-2z"/></symbol>
-      <symbol id="icon-key" viewBox="0 0 24 24"><path d="M7 14a5 5 0 0 1 5-5 5 5 0 0 1 5 5c0 .6-.1 1.2-.2 1.8l.8.8 3.2 3.2-1 1-3.2-3.2-.8.8c-.6.1-1.2.2-1.8.2a5 5 0 0 1-5-5zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></symbol>
-      <symbol id="icon-model" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3A6.96 6.96 0 0 1 5 9a7 7 0 0 1 7-7m0 4a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m-5 9h10v2H7z"/></symbol>
-      <symbol id="icon-notify" viewBox="0 0 24 24"><path d="M12 2a6 6 0 0 0-6 6v4l-2 2v1h16v-1l-2-2V8a6 6 0 0 0-6-6m0 20a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2m2-4h-4v-2h4z"/></symbol>
-      <symbol id="icon-export" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17h16"/></symbol>
-      <symbol id="icon-pwa" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-7.07 17.07A10 10 0 0 0 12 22a10 10 0 0 0 7.07-2.93A10 10 0 0 0 12 2m0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16m0-2V10l5 5h-4v4z"/></symbol>
-      <symbol id="icon-web" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-7.07 17.07A10 10 0 0 0 12 22a10 10 0 0 0 7.07-2.93A10 10 0 0 0 12 2m0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16m0-2V10l5 5h-4v4z"/></symbol>
-      <symbol id="icon-replay" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></symbol>
-      <symbol id="icon-admin" viewBox="0 0 24 24"><path d="M3 5h18v2H3zm2 4h14v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9zm5 2v4h2v-4h-2zm4 0v4h2v-4h-2z"/></symbol>
-    </svg>
-    <svg style="display:none">
-      <defs>
-        <symbol id="icon-settings" viewBox="0 0 24 24"><path d="M12 15.5A3.5 3.5 0 1 0 12 8.5a3.5 3.5 0 0 0 0 7zm7.43-4.1a.6.6 0 0 1 .07.51l-.2 2.1a2 2 0 0 1-1.66 1.66l-2.1.2a.6.6 0 0 1-.56-.23l-1.3-1.56a.6.6 0 0 0-.11-.08l-2.2.93a.6.6 0 0 1-.74-.33l-.93-2.2a.6.6 0 0 0-.08-.11L9.3 10a.6.6 0 0 1-.23-.56l.2-2.1a2 2 0 0 1 1.66-1.66l2.1-.2a.6.6 0 0 1 .56.23l1.3 1.56a.6.6 0 0 0 .11.08l2.2-.93a.6.6 0 0 1 .74.33l.93 2.2a.6.6 0 0 0 .08.11z"/></symbol>
-        <symbol id="icon-close" viewBox="0 0 24 24"><path d="M18.3 5.7a1 1 0 0 0-1.4 0L12 10.6 7.1 5.7a1 1 0 0 0-1.4 1.4L10.6 12l-3.9 3.9a1 1 0 1 0 1.4 1.4L12 13.4l3.9 3.9a1 1 0 1 0 1.4-1.4L13.4 12z"/></symbol>
-        <symbol id="icon-search" viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3A7.2 7.2 0 0 0 15 10a7 7 0 1 0-7 7 7 7 0 0 0 4.9-2l.3.3v.8l5 5 1.5-1.5zm-6 0a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"/></symbol>
-        <symbol id="icon-dialogs" viewBox="0 0 24 24"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2m0 14H6l-2 2V4h16z"/></symbol>
-        <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M11 11V7h2v4h4v2h-4v4h-2v-4H7v-2z"/></symbol>
-        <symbol id="icon-key" viewBox="0 0 24 24"><path d="M7 14a5 5 0 0 1 5-5 5 5 0 0 1 5 5c0 .6-.1 1.2-.2 1.8l.8.8 3.2 3.2-1 1-3.2-3.2-.8.8c-.6.1-1.2.2-1.8.2a5 5 0 0 1-5-5zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/></symbol>
-        <symbol id="icon-model" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3A6.96 6.96 0 0 1 5 9a7 7 0 0 1 7-7m0 4a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m-5 9h10v2H7z"/></symbol>
-        <symbol id="icon-notify" viewBox="0 0 24 24"><path d="M12 2a6 6 0 0 0-6 6v4l-2 2v1h16v-1l-2-2V8a6 6 0 0 0-6-6m0 20a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2m2-4h-4v-2h4z"/></symbol>
-        <symbol id="icon-export" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17h16"/></symbol>
-        <symbol id="icon-pwa" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-7.07 17.07A10 10 0 0 0 12 22a10 10 0 0 0 7.07-2.93A10 10 0 0 0 12 2m0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16m0-2V10l5 5h-4v4z"/></symbol>
-        <symbol id="icon-web" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-7.07 17.07A10 10 0 0 0 12 22a10 10 0 0 0 7.07-2.93A10 10 0 0 0 12 2m0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16m0-2V10l5 5h-4v4z"/></symbol>
-        <symbol id="icon-replay" viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.3 0 6 2.7 6 6s-2.7 6-6 6-6-2.7-6-6H4c0 4.4 3.6 8 8 8s8-3.6 8-8-3.6-8-8-8z"/></symbol>
-        <symbol id="icon-admin" viewBox="0 0 24 24"><path d="M3 5h18v2H3zm2 4h14v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9zm5 2v4h2v-4h-2zm4 0v4h2v-4h-2z"/></symbol>
-        <symbol id="icon-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zm4.5-11.1L18.5 13.2l1.7 1.7-11.2-11.2z"/></symbol>
-        <symbol id="icon-trash" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm2 4h14l-1.5 12H6.5zm5 2v6h2v-6h-2zm4 0v6h2v-6h-2z"/></symbol>
-        <symbol id="icon-save" viewBox="0 0 24 24"><path d="M5 20h14v-2H5zm7-18L4 9h16l-8-7zm-7 5h14l-1.5 11H4.5z"/></symbol>
-        <symbol id="icon-reply" viewBox="0 0 24 24"><path d="M12.5 19a7.5 7.5 0 1 1 7.5-7.5h2.5v2.5H20a5 5 0 1 0 0 10h-2.5v2.5H20v-2.5H12.5z"/></symbol>
-        <symbol id="icon-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zm4 18H6V4h7v5h5z"/></symbol>
-        <symbol id="icon-clipboard" viewBox="0 0 24 24"><path d="M16 2H8a2 2 0 0 0-2 2v2h10V4a2 2 0 0 0-2-2m-6 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2h2v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2V4h2z"/></symbol>
-        <symbol id="icon-vibrate" viewBox="0 0 24 24"><path d="M4 14v-2h3v2zm14 0v-2h3v2zM7 14v-2h2v2zm10 0v-2h2v2zM8 10v-2h8v2zm-4 4v-2h16v2z"/></symbol>
-        <symbol id="icon-broom" viewBox="0 0 24 24"><path d="M3 4h18v2H3zm2 4h14l-2 12H7zm4 2v6h2v-6h-2zm4 0v6h2v-6h-2z"/></symbol>
-        <symbol id="icon-check" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></symbol>
-        <symbol id="icon-star-on" viewBox="0 0 24 24"><path d="M12 2l3.1 6.3 7.1 1-5.1 5 1.2 7L12 16.5 5.7 19.4l1.2-7-5.1-5 7.1-1z"/></symbol>
-        <symbol id="icon-star-off" viewBox="0 0 24 24"><path d="M12 2l3.1 6.3 7.1 1-5.1 5 1.2 7L12 16.5 5.7 19.4l1.2-7-5.1-5 7.1-1z"/></symbol>
-        <symbol id="icon-right" viewBox="0 0 24 24"><path d="M10 17l5-5-5-5v10z"/></symbol>
-        <symbol id="icon-left" viewBox="0 0 24 24"><path d="M14 7l-5 5 5 5V7z"/></symbol>
-        <symbol id="icon-left-right" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5V7zm8 0h5v10h-5z"/></symbol>
-        <symbol id="icon-recycle" viewBox="0 0 24 24"><path d="M12 4a8 8 0 0 1 8 8 8 8 0 0 1-2.3.7l3.6 4.2-1.4 1.2-3.6-4.2A8 8 0 1 1 12 4m0-2a10 10 0 0 0-7.1 2.9l1.4 1.6A8 8 0 1 1 12 2m-8 10a8 8 0 1 1 14.3 4.3l-1.4-1.6A6 6 0 1 0 4 12"/></symbol>
-        <symbol id="icon-brain" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.5-3 5.7V17a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-2.3A6.96 6.96 0 0 1 5 9a7 7 0 0 1 7-7m0 4a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m-5 9h10v2H7z"/></symbol>
-      </defs>
-    </svg>
     <header>
       <div style="flex: 1"></div>
       <button
@@ -174,8 +127,8 @@
       <div class="panel">
         <div class="panel-head">
           <span class="grip"></span>
-           <b><svg class="icon"><use href="#icon-settings"/></svg> Настройки</b>
-           <button class="close" data-close="settings" title="Закрыть"><svg class="icon"><use href="#icon-close"/></svg></button>
+           <b><i data-lucide="settings" class="icon"></i> Настройки</b>
+           <button class="close" data-close="settings" title="Закрыть"><i data-lucide="x" class="icon"></i></button>
         </div>
         <div class="panel-body">
           <div class="tab-content active" data-content="theme">
@@ -321,7 +274,7 @@
                     ＋ Добавить
                   </button>
                   <button class="btn ghost sm" id="tpl_add_rec" type="button">
-                 <svg class="icon"><use href="#icon-clipboard"/></svg> Рекомендуемый
+                 <i data-lucide="clipboard-list" class="icon"></i> Рекомендуемый
                   </button>
                 </div>
               </div>
@@ -358,7 +311,7 @@
               </div>
               <div id="s_keys" class="provkeys"></div>
               <a id="s_keys_help" class="btn ghost sm" style="margin-top:8px" href="https://cat-penguin-ac7.notion.site/API-3a753a5bca1a808bb9b6e2f4be78d865?source=copy_link" target="_blank" rel="noopener noreferrer">
-                <svg class="icon"><use href="#icon-file"/></svg> Где взять ключ?
+                <i data-lucide="file-text" class="icon"></i> Где взять ключ?
               </a>
             </div>
           </div>
@@ -377,7 +330,7 @@
                 <label class="custom-toggle">
                   <input type="checkbox" id="s_vibrate" />
                   <div class="toggle-slider"></div>
-                  <span class="toggle-label"><svg class="icon"><use href="#icon-vibrate"/></svg> Вибрация</span>
+                  <span class="toggle-label"><i data-lucide="vibrate" class="icon"></i> Вибрация</span>
                 </label>
               </div>
             </div>
@@ -439,10 +392,10 @@
               </div>
               <div class="export-btns">
                 <button class="btn ghost sm" id="s_export_md" type="button">
-                  <svg class="icon"><use href="#icon-file"/></svg> Markdown
+                  <i data-lucide="file-text" class="icon"></i> Markdown
                 </button>
                 <button class="btn ghost sm" id="s_export_txt" type="button">
-                  <svg class="icon"><use href="#icon-clipboard"/></svg> TXT
+                  <i data-lucide="clipboard-list" class="icon"></i> TXT
                 </button>
               </div>
             </div>
@@ -455,10 +408,10 @@
               </div>
               <div class="export-btns" style="margin-bottom: 8px">
                 <button id="s_pwa" class="btn ghost sm" type="button">
-                  <svg class="icon"><use href="#icon-pwa"/></svg> PWA
+                  <i data-lucide="smartphone" class="icon"></i> PWA
                 </button>
                 <button id="s_web" class="btn ghost sm" type="button">
-                  <svg class="icon"><use href="#icon-web"/></svg> В браузере
+                  <i data-lucide="globe" class="icon"></i> В браузере
                 </button>
               </div>
               <a
@@ -466,7 +419,7 @@
                 class="btn sm"
                 href="admin.html"
                 style="display: none; align-self: flex-start"
-                ><svg class="icon"><use href="#icon-admin"/></svg> Админ-панель</a
+                ><i data-lucide="shield" class="icon"></i> Админ-панель</a
               >
             </div>
             <div class="settings-card">
@@ -478,7 +431,7 @@
               </div>
               <div class="export-btns">
                 <button id="s_replay_tour" class="btn ghost sm" type="button">
-                  <svg class="icon"><use href="#icon-replay"/></svg> Повторить обучение
+                  <i data-lucide="rotate-ccw" class="icon"></i> Повторить обучение
                 </button>
               </div>
             </div>
@@ -507,19 +460,19 @@
           </div>
           <div class="settings-tabs">
             <button class="stab active" data-tab="theme">
-              <span class="stab-icon"><svg class="icon"><use href="#icon-model"/></svg></span>Тема
+               <span class="stab-icon"><i data-lucide="palette" class="icon"></i></span>Тема
             </button>
             <button class="stab" data-tab="prompts">
-              <span class="stab-icon"><svg class="icon"><use href="#icon-clipboard"/></svg></span>Промпты
+               <span class="stab-icon"><i data-lucide="message-square" class="icon"></i></span>Промпты
             </button>
             <button class="stab" data-tab="keys">
-              <span class="stab-icon"><svg class="icon"><use href="#icon-key"/></svg></span>Ключи
+               <span class="stab-icon"><i data-lucide="key" class="icon"></i></span>Ключи
             </button>
             <button class="stab" data-tab="notify">
-              <span class="stab-icon"><svg class="icon"><use href="#icon-notify"/></svg></span>Опов.
+               <span class="stab-icon"><i data-lucide="bell" class="icon"></i></span>Опов.
             </button>
             <button class="stab" data-tab="more">
-              <span class="stab-icon"><svg class="icon"><use href="#icon-export"/></svg></span>Ещё
+               <span class="stab-icon"><i data-lucide="upload" class="icon"></i></span>Ещё
             </button>
           </div>
         </div>
@@ -531,8 +484,8 @@
       <div class="panel">
         <div class="panel-head">
           <span class="grip"></span>
-           <b><svg class="icon"><use href="#icon-search"/></svg> Поиск по чату</b>
-            <button class="close" data-close="chatSearch" title="Закрыть"><svg class="icon"><use href="#icon-close"/></svg></button>
+           <b><i data-lucide="search" class="icon"></i> Поиск по чату</b>
+            <button class="close" data-close="chatSearch" title="Закрыть"><i data-lucide="x" class="icon"></i></button>
           </button>
         </div>
         <div class="panel-body">
@@ -561,8 +514,8 @@
       <div class="panel">
         <div class="panel-head">
           <span class="grip"></span>
-           <b><svg class="icon"><use href="#icon-brain"/></svg> Браузер моделей</b>
-            <button class="close" data-close="modelBrowser" title="Закрыть"><svg class="icon"><use href="#icon-close"/></svg></button>
+           <b><i data-lucide="brain" class="icon"></i> Браузер моделей</b>
+            <button class="close" data-close="modelBrowser" title="Закрыть"><i data-lucide="x" class="icon"></i></button>
           </button>
         </div>
         <div class="mb-search">
@@ -609,11 +562,11 @@
     <div id="vision"></div>
 
     <div id="lightbox">
-      <button class="lb-close" title="Закрыть"><svg class="icon"><use href="#icon-close"/></svg></button>
+      <button class="lb-close" title="Закрыть"><i data-lucide="x" class="icon"></i></button>
       <img id="lb_img" alt="" />
       <div class="lb-actions">
-        <button id="lb_save"><svg class="icon"><use href="#icon-save"/></svg> Сохранить</button>
-        <button id="lb_reply" class="lb-reply"><svg class="icon"><use href="#icon-reply"/></svg> Ответить</button>
+        <button id="lb_save"><i data-lucide="save" class="icon"></i> Сохранить</button>
+        <button id="lb_reply" class="lb-reply"><i data-lucide="reply" class="icon"></i> Ответить</button>
       </div>
     </div>
 
@@ -621,8 +574,8 @@
       <div class="panel">
         <div class="panel-head">
           <span class="grip"></span>
-           <b><svg class="icon"><use href="#icon-dialogs"/></svg> Диалоги</b>
-          <button class="close" data-close="dialogsPanel" title="Закрыть"><svg class="icon"><use href="#icon-close"/></svg></button>
+           <b><i data-lucide="message-circle" class="icon"></i> Диалоги</b>
+          <button class="close" data-close="dialogsPanel" title="Закрыть"><i data-lucide="x" class="icon"></i></button>
         </div>
         <div class="panel-body" id="dialogsPanel_body"></div>
       </div>
@@ -633,7 +586,7 @@
       <div class="modal-dialog">
         <div class="modal-head">
           <b id="confirmTitle">Подтверждение</b>
-          <button class="modal-close" data-close="confirmModal"><svg class="icon"><use href="#icon-close"/></svg></button>
+          <button class="modal-close" data-close="confirmModal"><i data-lucide="x" class="icon"></i></button>
         </div>
         <div class="modal-body" id="confirmBody"></div>
         <div class="modal-foot">
@@ -648,7 +601,7 @@
       <div class="modal-dialog">
         <div class="modal-head">
           <b id="alertTitle">Внимание</b>
-          <button class="modal-close" data-close="alertModal"><svg class="icon"><use href="#icon-close"/></svg></button>
+          <button class="modal-close" data-close="alertModal"><i data-lucide="x" class="icon"></i></button>
         </div>
         <div class="modal-body" id="alertBody"></div>
         <div class="modal-foot">

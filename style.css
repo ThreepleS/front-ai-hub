@@ -2020,6 +2020,13 @@ textarea {
   border: 1px solid var(--stroke-strong);
   background: var(--panel);
 }
+.lucide {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+  color: inherit;
+}
 .icon {
   width: 18px;
   height: 18px;

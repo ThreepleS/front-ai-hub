@@ -219,11 +219,11 @@ function renderDialogsPanel() {
           <div class="dialog-item-main" data-id="${d.id}">
             <div class="dialog-item-name" title="Нажми, чтобы переименовать">
               <span class="dialog-name-text">${esc(d.name || "")}</span>
-              <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать"><svg class="icon"><use href="#icon-edit"/></svg></button>
+              <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать"><i data-lucide="pencil" class="icon"></i></button>
             </div>
             <div class="dialog-item-meta">${date} · ${(d.messages || []).length} сообщ.</div>
           </div>
-          <button class="dialog-item-del" data-del="${d.id}" title="Удалить"><svg class="icon"><use href="#icon-trash"/></svg></button>
+          <button class="dialog-item-del" data-del="${d.id}" title="Удалить"><i data-lucide="trash-2" class="icon"></i></button>
         `;
         const startRename = () => {
           const nameEl = item.querySelector(".dialog-name-text");
@@ -495,14 +495,14 @@ const MATH_SYM = {
   angle: "∠",
   perp: "⊥",
   parallel: "∥",
-  rightarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-right'/></svg>",
-  leftarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-left'/></svg>",
-  Rightarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-right'/></svg>",
-  Leftarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-left'/></svg>",
-  leftrightarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-left-right'/></svg>",
-  Leftrightarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-left-right'/></svg>",
-  to: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-right'/></svg>",
-  mapsto: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-right'/></svg>",
+  rightarrow: "<i data-lucide='arrow-right' class='icon' style='width:14px;height:14px'></i>",
+  leftarrow: "<i data-lucide='arrow-left' class='icon' style='width:14px;height:14px'></i>",
+  Rightarrow: "<i data-lucide='arrow-right' class='icon' style='width:14px;height:14px'></i>",
+  Leftarrow: "<i data-lucide='arrow-left' class='icon' style='width:14px;height:14px'></i>",
+  leftrightarrow: "<i data-lucide='arrows-left-right' class='icon' style='width:14px;height:14px'></i>",
+  Leftrightarrow: "<i data-lucide='arrows-left-right' class='icon' style='width:14px;height:14px'></i>",
+  to: "<i data-lucide='arrow-right' class='icon' style='width:14px;height:14px'></i>",
+  mapsto: "<i data-lucide='arrow-right' class='icon' style='width:14px;height:14px'></i>",
   dots: "…",
   ldots: "…",
   cdots: "⋯",
@@ -976,7 +976,7 @@ function addCodeCopy(root) {
     wrap.appendChild(pre);
     const btn = document.createElement("button");
     btn.className = "code-copy";
-    btn.textContent = "<svg class='icon'><use href='#icon-clipboard'/></svg>";
+    btn.textContent = "<i data-lucide='clipboard-list' class='icon'></i>";
     btn.title = "Копировать";
     btn.addEventListener("click", () => {
       const code = pre.querySelector("code");
@@ -984,8 +984,8 @@ function addCodeCopy(root) {
       navigator.clipboard
         .writeText(txt)
         .then(() => {
-    btn.textContent = "<svg class='icon'><use href='#icon-check'/></svg>";
-    setTimeout(() => (btn.textContent = "<svg class='icon'><use href='#icon-clipboard'/></svg>"), 1200);
+    btn.textContent = "<i data-lucide='check' class='icon'></i>";
+    setTimeout(() => (btn.textContent = "<i data-lucide='clipboard-list' class='icon'></i>"), 1200);
         })
         .catch(() => {});
     });
@@ -1319,7 +1319,7 @@ function showAttach() {
   img.src = pendingImage.dataUrl;
   const rm = document.createElement("button");
   rm.className = "attach-rm";
-      rm.textContent = "<svg class='icon'><use href='#icon-close'/></svg>";
+      rm.textContent = "<i data-lucide='x' class='icon'></i>";
   rm.onclick = () => {
     pendingImage = null;
     showAttach();
@@ -1487,7 +1487,8 @@ ctxMenu.addEventListener("click", (e) => {
     ctxMsgEl.remove();
     updateEmptyState();
      
-    toast("Удалено", "ok");
+
+if (window.lucide) lucide.createIcons();    toast("Удалено", "ok");
   }
   hideCtx();
 });
@@ -1880,7 +1881,7 @@ function mbRenderDetail() {
   ];
   badges.push(
     v.is_free
-      ? '<span class="badge free"><svg class="icon"><use href="#icon-check"/></svg> Бесплатно</span>'
+      ? '<span class="badge free"><i data-lucide="check" class="icon"></i> Бесплатно</span>'
       : '<span class="badge paid">Платно</span>',
   );
   const inTypes = (v.mod_in || "")
@@ -1945,7 +1946,7 @@ function mbRenderDetail() {
   el.innerHTML = `
         <div class="dhead">
           <div class="dname">${esc(v.name)}</div>
-          <button class="mb-star ${fav ? "on" : ""}" data-star="${esc(id)}" title="В избранное">${fav ? "★" : "☆"}</button>
+          <button class="mb-star ${fav ? "on" : ""}" data-star="${esc(id)}" title="В избранное"><i data-lucide="${fav ? 'star' : 'star-off'}" class="icon"></i></button>
         </div>
         <div class="mb-badges">${badges.join("")}${caps}</div>
         <div class="mb-grid">${grid}</div>
@@ -1987,7 +1988,7 @@ async function mbRenderList() {
     const isFree = g.free === true;
     const pingBtn =
       (g.key === "openrouter" || g.key === "gemini") && count > 0
-        ? `<button class="ping-btn" data-ping="${g.key}" ${mbState.pinging[g.key] ? "disabled" : ""}><svg class="icon"><use href="#icon-replay"/></svg> Обновить</button>`
+        ? `<button class="ping-btn" data-ping="${g.key}" ${mbState.pinging[g.key] ? "disabled" : ""}><i data-lucide="refresh-cw" class="icon"></i> Обновить</button>`
         : "";
     const pingTime =
       isFree && mbState.lastPing[g.key]
@@ -2022,7 +2023,7 @@ async function mbRenderList() {
               <span class="iname">${esc(name)}</span>
               ${isFreeModel ? '<span class="ibadges"><span class="mb-mini">FREE</span></span>' : ""}
               ${typeBadge}
-              <span class="istar ${fav ? "on" : ""}">${fav ? "★" : "☆"}</span>
+              <span class="istar ${fav ? "on" : ""}"><i data-lucide="${fav ? 'star' : 'star-off'}" class="icon"></i></span>
             </div>`;
       });
     }
@@ -2508,7 +2509,7 @@ async function tplRender() {
       : "";
     const resetBtn =
       t.recommended && t.originalText && t.text !== t.originalText
-        ? `<button class="btn ghost sm tpl-reset" data-id="${esc(t.id)}" title="Сбросить"><svg class="icon"><use href="#icon-replay"/></svg></button>`
+        ? `<button class="btn ghost sm tpl-reset" data-id="${esc(t.id)}" title="Сбросить"><i data-lucide="undo-2" class="icon"></i></button>`
         : "";
     card.innerHTML = `
           <div class="tpl-info" data-id="${esc(t.id)}">
@@ -2517,8 +2518,8 @@ async function tplRender() {
           </div>
           <div class="tpl-actions">
             ${resetBtn}
-            ${t.recommended ? "" : `<button class="btn ghost sm tpl-edit" data-id="${esc(t.id)}" title="Изменить"><svg class="icon"><use href="#icon-edit"/></svg></button>`}
-            <button class="btn ghost sm tpl-del" data-id="${esc(t.id)}" title="Удалить"><svg class="icon"><use href="#icon-close"/></svg></button>
+            ${t.recommended ? "" : `<button class="btn ghost sm tpl-edit" data-id="${esc(t.id)}" title="Изменить"><i data-lucide="pencil" class="icon"></i></button>`}
+            <button class="btn ghost sm tpl-del" data-id="${esc(t.id)}" title="Удалить"><i data-lucide="x" class="icon"></i></button>
           </div>
         `;
     wrap.appendChild(card);
