@@ -3223,6 +3223,7 @@ async function runTour() {
       closeTour();
       return;
     }
+    currentStep = index;
     const step = steps[index];
     const target = $(step.target);
     if (!target) {
@@ -3245,7 +3246,6 @@ async function runTour() {
     applySpotlight(rect);
     backdrop.classList.add("active");
     tooltip.style.display = "block";
-    currentStep = index;
   }
 
   function advanceTour() {
