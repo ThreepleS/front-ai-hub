@@ -3226,6 +3226,7 @@ async function runTour() {
     const step = steps[index];
     const target = $(step.target);
     if (!target) {
+      console.debug("[tour] step " + index + " missing target " + step.target + ", closing");
       closeTour();
       return;
     }
@@ -3240,6 +3241,7 @@ async function runTour() {
     }
 
     const rect = target.getBoundingClientRect();
+    console.debug("[tour] step " + index + " target=" + step.target + " title=" + step.title + " rect=" + JSON.stringify({x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.width), h: Math.round(rect.height)}));
     applySpotlight(rect);
     backdrop.classList.add("active");
     tooltip.style.display = "block";
