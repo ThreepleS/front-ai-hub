@@ -3173,7 +3173,8 @@ async function runTour() {
     {
       target: "#gear",
       title: "Открой настройки",
-      body: "Нажми на шестерёнку здесь — откроются настройки. Я покажу, где вставить API-ключ, чтобы чат начал работать. Теперь клики по подсвечиваемым элементам работают во время тура.",
+      body: "Сейчас откроются настройки. Тут можно выбрать модель, задать системный промпт, изменить лимит контекста и внешний вид. Самое главное — во вкладке «Ключи» добавить API-ключ, иначе чат не будет работать.",
+      openSettingsBefore: true,
     },
     {
       target: "#s_keys",
@@ -3183,6 +3184,7 @@ async function runTour() {
   ];
 
   let currentStep = 0;
+  let settingsOpenedForTour = false;
 
   function positionTooltip(rect) {
     const tooltipRect = tooltip.getBoundingClientRect();
@@ -3206,7 +3208,7 @@ async function runTour() {
     const y = rect.top - pad;
     const w = rect.width + pad * 2;
     const h = rect.height + pad * 2;
-    overlay.style.clipPath = `polygon(0px 0px, 0px 100vh, 100vw 100vh, 100vw 0px, 0px 0px, ${x}px ${y}px, ${x}px ${y + h}px, ${x + w}px ${y + h}px, ${x + w}px ${y}px, ${x}px ${y}px)`;
+    overlay.style.clipPath = `polygon(0px 0px, 0px 100vh, 100vw 100vh, 100vw 0px, 0px 0px, ${x}px ${y}px, ${x + w}px ${y}px, ${x + w}px ${y + h}px, ${x}px ${y + h}px, ${x}px ${y}px)`;
   }
 
   function applySpotlight(rect) {
@@ -3231,12 +3233,16 @@ async function runTour() {
       return;
     }
 
+    if (step.openSettingsBefore && !settingsOpenedForTour) {
+      openSettings("keys");
+      settingsOpenedForTour = true;
+    }
+
     titleEl.textContent = step.title;
     bodyEl.textContent = step.body;
     nextBtn.textContent = index === steps.length - 1 ? "Завершить" : "Далее";
 
     const rect = target.getBoundingClientRect();
-    console.debug("[tour] step " + index + " target=" + step.target + " title=" + step.title + " rect=" + JSON.stringify({x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.width), h: Math.round(rect.height)}));
     applySpotlight(rect);
     backdrop.classList.add("active");
     tooltip.style.display = "block";
