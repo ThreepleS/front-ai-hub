@@ -3184,13 +3184,13 @@ async function runTour() {
     {
       target: "#gear",
       title: "Открой настройки",
-      body: "Сейчас откроются настройки. Тут можно выбрать модель, задать системный промпт, изменить лимит контекста и внешний вид. Самое главное — во вкладке «Ключи» добавить API-ключ, иначе чат не будет работать.",
-      openSettingsBefore: true,
+      body: "Сейчас нажми «Далее» — я открою настройки сам. Там можно выбрать модель, задать системный промпт, изменить лимит контекста и внешний вид. Самое главное — во вкладке «Ключи» добавить API-ключ, иначе чат не будет работать.",
     },
     {
       target: "#s_keys",
       title: "API-ключи",
       body: "Без ключа чат не сможет отправлять запросы к модели. Выбери своего провайдера, вставь ключ и нажми «Сохранить». После этого можно возвращаться в чат.",
+      settingsStep: true,
     },
   ];
 
@@ -3260,13 +3260,8 @@ async function runTour() {
       skipBtn.style.display = "none";
     } else {
       backdrop.classList.remove("tour-settings-mode");
-    }
-
-    if (step.openSettingsBefore && !settingsOpenedForTour) {
-      openSettings("keys");
-      settingsOpenedForTour = true;
-      setTimeout(() => showStep(index), 150);
-      return;
+      overlay.style.display = "";
+      skipBtn.style.display = "";
     }
 
     titleEl.textContent = step.title;
@@ -3306,7 +3301,14 @@ async function runTour() {
     settingsOpenedForTour = false;
   }
 
-  const onNext = () => showStep(currentStep + 1);
+  const onNext = () => {
+    const step = steps[currentStep];
+    if (step && step.target === "#gear" && !settingsOpenedForTour) {
+      openSettings("keys");
+      settingsOpenedForTour = true;
+    }
+    showStep(currentStep + 1);
+  };
   const onSkip = () => closeTour();
 
   nextBtn.addEventListener("click", onNext);
