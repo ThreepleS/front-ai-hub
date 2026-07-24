@@ -3254,17 +3254,19 @@ async function runTour() {
     const isSettingsTarget = step.target === "#settings" || step.target.startsWith("#s_");
     const settingsMode = isSettingsTarget && $("#settings").classList.contains("open");
 
+    if (settingsMode) {
+      backdrop.classList.add("tour-settings-mode");
+      overlay.style.display = "none";
+      skipBtn.style.display = "none";
+    } else {
+      backdrop.classList.remove("tour-settings-mode");
+    }
+
     if (step.openSettingsBefore && !settingsOpenedForTour) {
       openSettings("keys");
       settingsOpenedForTour = true;
       setTimeout(() => showStep(index), 150);
       return;
-    }
-
-    if (settingsMode) {
-      backdrop.classList.add("tour-settings-mode");
-    } else {
-      backdrop.classList.remove("tour-settings-mode");
     }
 
     titleEl.textContent = step.title;

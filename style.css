@@ -2638,14 +2638,14 @@ textarea {
 }
 .tour-backdrop.tour-settings-mode {
   pointer-events: none;
-  z-index: 199;
+  z-index: 199 !important;
 }
 .tour-backdrop.tour-settings-mode .tour-overlay,
 .tour-backdrop.tour-settings-mode .tour-skip-wrap {
   display: none !important;
 }
 .tour-backdrop.tour-settings-mode .tour-tooltip {
-  z-index: 15005;
+  z-index: 15005 !important;
 }
 .tour-backdrop.tour-settings-mode .tour-overlay {
   background: transparent;
