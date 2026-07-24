@@ -2020,6 +2020,12 @@ textarea {
   border: 1px solid var(--stroke-strong);
   background: var(--panel);
 }
+.icon {
+  width: 18px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: middle;
+}
 .tpl-edit input,
 .tpl-edit textarea {
   padding: 10px 12px;

@@ -219,11 +219,11 @@ function renderDialogsPanel() {
           <div class="dialog-item-main" data-id="${d.id}">
             <div class="dialog-item-name" title="Нажми, чтобы переименовать">
               <span class="dialog-name-text">${esc(d.name || "")}</span>
-              <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать">✏️</button>
+              <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать"><svg class="icon"><use href="#icon-edit"/></svg></button>
             </div>
             <div class="dialog-item-meta">${date} · ${(d.messages || []).length} сообщ.</div>
           </div>
-          <button class="dialog-item-del" data-del="${d.id}" title="Удалить">🗑</button>
+          <button class="dialog-item-del" data-del="${d.id}" title="Удалить"><svg class="icon"><use href="#icon-trash"/></svg></button>
         `;
         const startRename = () => {
           const nameEl = item.querySelector(".dialog-name-text");
@@ -976,7 +976,7 @@ function addCodeCopy(root) {
     wrap.appendChild(pre);
     const btn = document.createElement("button");
     btn.className = "code-copy";
-    btn.textContent = "📋";
+    btn.textContent = "<svg class='icon'><use href='#icon-clipboard'/></svg>";
     btn.title = "Копировать";
     btn.addEventListener("click", () => {
       const code = pre.querySelector("code");
@@ -984,8 +984,8 @@ function addCodeCopy(root) {
       navigator.clipboard
         .writeText(txt)
         .then(() => {
-          btn.textContent = "✅";
-          setTimeout(() => (btn.textContent = "📋"), 1200);
+    btn.textContent = "<svg class='icon'><use href='#icon-check'/></svg>";
+    setTimeout(() => (btn.textContent = "<svg class='icon'><use href='#icon-clipboard'/></svg>"), 1200);
         })
         .catch(() => {});
     });
@@ -1319,7 +1319,7 @@ function showAttach() {
   img.src = pendingImage.dataUrl;
   const rm = document.createElement("button");
   rm.className = "attach-rm";
-  rm.textContent = "✕";
+      rm.textContent = "<svg class='icon'><use href='#icon-close'/></svg>";
   rm.onclick = () => {
     pendingImage = null;
     showAttach();
@@ -1880,7 +1880,7 @@ function mbRenderDetail() {
   ];
   badges.push(
     v.is_free
-      ? '<span class="badge free">✅ Бесплатно</span>'
+      ? '<span class="badge free"><svg class="icon"><use href="#icon-check"/></svg> Бесплатно</span>'
       : '<span class="badge paid">Платно</span>',
   );
   const inTypes = (v.mod_in || "")
