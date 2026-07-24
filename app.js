@@ -3171,13 +3171,14 @@ async function runTour() {
     },
     {
       target: "#settings",
-      title: "Настройки",
-      body: "В настройках есть вкладки: модели, промпт, ключи и прочее. Рекомендую сначала зайти во вкладку «Ключи» и добавить API-ключ своего провайдера, чтобы начать общение.",
+      title: "Настройки откроются автоматически",
+      body: "Здесь можно настроить всё под себя: выбрать модель по умолчанию, задать системный промпт, изменить лимит контекста и внешний вид. Сначала я покажу основные разделы, а потом мы подробно займёмся ключами.",
+      openSettingsBefore: true,
     },
     {
       target: "#s_keys",
       title: "API-ключи",
-      body: "Здесь добавляются ключи для провайдеров. Сохрани нужный ключ, иначе чат не сможет отправлять запросы к модели.",
+      body: "Здесь добавляются ключи для провайдеров. Без ключа чат не сможет отправлять запросы к модели. Выбери провайдера, вставь ключ и нажми «Сохранить» внизу.",
     },
   ];
 
@@ -3193,6 +3194,10 @@ async function runTour() {
     if (!target) {
       closeTour();
       return;
+    }
+
+    if (step.openSettingsBefore) {
+      openSettings("keys");
     }
 
     document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
@@ -3228,6 +3233,7 @@ async function runTour() {
     skipBtn.removeEventListener("click", onSkip);
     showQueuedAuthErrorIfAny();
     openDeferredSettingsIfAny();
+    if ($("#settings").classList.contains("open")) closeSettings();
   }
 
   const onNext = () => showStep(currentStep + 1);
