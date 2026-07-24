@@ -219,11 +219,11 @@ function renderDialogsPanel() {
           <div class="dialog-item-main" data-id="${d.id}">
             <div class="dialog-item-name" title="Нажми, чтобы переименовать">
               <span class="dialog-name-text">${esc(d.name || "")}</span>
-              <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать"><i data-lucide="pencil" class="lucide"></i></button>
+              <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать"><i data-lucide='pencil' class='lucide'></i></button>
             </div>
             <div class="dialog-item-meta">${date} · ${(d.messages || []).length} сообщ.</div>
           </div>
-          <button class="dialog-item-del" data-del="${d.id}" title="Удалить"><i data-lucide="trash-2" class="lucide"></i></button>
+          <button class="dialog-item-del" data-del="${d.id}" title="Удалить"><i data-lucide='trash-2' class='lucide'></i></button>
         `;
         const startRename = () => {
           const nameEl = item.querySelector(".dialog-name-text");
@@ -890,7 +890,7 @@ document.getElementById("ct_save").addEventListener("click", () => {
     );
   } catch {}
   saveThemeToBackend("custom");
-  toast("Тема сохранена <i data-lucide="check" class="lucide"></i>", "ok");
+  toast("Тема сохранена <i data-lucide='check' class='lucide'></i>", "ok");
 });
 
 function loadCustomThemeEditor() {
@@ -976,7 +976,7 @@ function addCodeCopy(root) {
     wrap.appendChild(pre);
     const btn = document.createElement("button");
     btn.className = "code-copy";
-    btn.textContent = "<i data-lucide="clipboard" class="lucide"></i>";
+    btn.textContent = "<i data-lucide='clipboard' class='lucide'></i>";
     btn.title = "Копировать";
     btn.addEventListener("click", () => {
       const code = pre.querySelector("code");
@@ -984,8 +984,8 @@ function addCodeCopy(root) {
       navigator.clipboard
         .writeText(txt)
         .then(() => {
-          btn.textContent = "<i data-lucide="check" class="lucide"></i>";
-          setTimeout(() => (btn.textContent = "<i data-lucide="clipboard" class="lucide"></i>"), 1200);
+          btn.textContent = "<i data-lucide='check' class='lucide'></i>";
+          setTimeout(() => (btn.textContent = "<i data-lucide='clipboard' class='lucide'></i>"), 1200);
         })
         .catch(() => {});
     });
@@ -1037,7 +1037,7 @@ $("#s_web").addEventListener("click", async () => {
       window.open(url, "_blank");
     }
   } catch (err) {
-    await showAlert("Ошибка", "<i data-lucide="alert-triangle" class="lucide"></i> " + String(err));
+    await showAlert("Ошибка", "<i data-lucide='alert-triangle' class='lucide'></i> " + String(err));
   }
 });
 
@@ -1160,8 +1160,8 @@ async function auth(devId) {
   } catch (e) {
     const tip =
       "Не удалось достучаться до сервера. Проверь интернет и адрес Functions.";
-    log("<i data-lucide="alert-triangle" class="lucide"></i> " + tip);
-    await showAlert("Ошибка подключения", "<i data-lucide="alert-triangle" class="lucide"></i> " + tip);
+    log("<i data-lucide='alert-triangle' class='lucide'></i> " + tip);
+    await showAlert("Ошибка подключения", "<i data-lucide='alert-triangle' class='lucide'></i> " + tip);
     setStatus("err");
     return false;
   }
@@ -1169,7 +1169,7 @@ async function auth(devId) {
     const data = await res.json();
     if (!data.ok) {
       log(data.error || "нет доступа");
-      await showAlert("Ошибка", "<i data-lucide="alert-triangle" class="lucide"></i> " + (data.error || "нет доступа"));
+      await showAlert("Ошибка", "<i data-lucide='alert-triangle' class='lucide'></i> " + (data.error || "нет доступа"));
       setStatus("err");
       return false;
     }
@@ -1187,12 +1187,12 @@ async function auth(devId) {
     $("#vision").style.display = "";
     updateEmptyState();
     if (data.needs_key) {
-      log("<i data-lucide="alert-triangle" class="lucide"></i> укажи API-ключ в настройках");
+      log("<i data-lucide='alert-triangle' class='lucide'></i> укажи API-ключ в настройках");
       openSettings("keys");
     }
     return true;
   } catch (e) {
-    log("<i data-lucide="alert-triangle" class="lucide"></i> сервер вернул не-JSON: " + String(e));
+    log("<i data-lucide='alert-triangle' class='lucide'></i> сервер вернул не-JSON: " + String(e));
     setStatus("err");
     return false;
   }
@@ -1237,7 +1237,7 @@ async function loadKeyInfo() {
     PROVIDERS.forEach((p) => {
       const k = (data.keys && data.keys[p]) || {};
       const st = $("#key_status_" + p);
-      if (st) st.textContent = k.has ? "<i data-lucide="check" class="lucide"></i> сохранён" : "— нет";
+      if (st) st.textContent = k.has ? "<i data-lucide='check' class='lucide'></i> сохранён" : "— нет";
     });
   } catch {}
 }
@@ -1274,7 +1274,7 @@ function checkVision() {
   if (pendingImage && model && !modelSupportsVision(model)) {
     v.style.display = "block";
     v.textContent =
-      "<i data-lucide="alert-triangle" class="lucide"></i> Модель, возможно, не поддерживает анализ изображений — фото может не сработать.";
+      "<i data-lucide='alert-triangle' class='lucide'></i> Модель, возможно, не поддерживает анализ изображений — фото может не сработать.";
   } else {
     v.style.display = "none";
   }
@@ -1295,7 +1295,7 @@ function showAttach() {
   img.src = pendingImage.dataUrl;
   const rm = document.createElement("button");
   rm.className = "attach-rm";
-  rm.textContent = "<i data-lucide="x" class="lucide"></i>";
+  rm.textContent = "<i data-lucide='x' class='lucide'></i>";
   rm.onclick = () => {
     pendingImage = null;
     showAttach();
@@ -1437,7 +1437,7 @@ ctxMenu.addEventListener("click", (e) => {
     const text = ctxMsgEl.innerText || ctxMsgEl.textContent;
     navigator.clipboard
       .writeText(text.trim())
-      .then(() => toast("Скопировано <i data-lucide="check" class="lucide"></i>", "ok"))
+      .then(() => toast("Скопировано <i data-lucide='check' class='lucide'></i>", "ok"))
       .catch(() => {});
   } else if (act === "reply") {
     const text = (
@@ -1495,7 +1495,7 @@ $("#lb_reply").addEventListener("click", async () => {
     showAttach();
     closeLightbox();
   } catch (err) {
-    await showAlert("Ошибка", "<i data-lucide="alert-triangle" class="lucide"></i> Не удалось вставить фото: " + String(err));
+    await showAlert("Ошибка", "<i data-lucide='alert-triangle' class='lucide'></i> Не удалось вставить фото: " + String(err));
   }
 });
 
@@ -1602,7 +1602,7 @@ $("#bar").addEventListener("submit", async (e) => { vibClick();
     }
     if (buf) await flushLine(buf);
   } catch (err) {
-    addMessage("bot", "<i data-lucide="alert-triangle" class="lucide"></i> " + escapeHtml(String(err)));
+    addMessage("bot", "<i data-lucide='alert-triangle' class='lucide'></i> " + escapeHtml(String(err)));
     notify();
   } finally {
     if (sendBtn) sendBtn.classList.remove("typing");
@@ -1856,7 +1856,7 @@ function mbRenderDetail() {
   ];
   badges.push(
     v.is_free
-      ? '<span class="badge free"><i data-lucide="check" class="lucide"></i> Бесплатно</span>'
+      ? "<span class=\"badge free\"><i data-lucide=\"check\" class=\"lucide\"></i> Бесплатно</span>"
       : '<span class="badge paid">Платно</span>',
   );
   const inTypes = (v.mod_in || "")
@@ -1891,9 +1891,9 @@ function mbRenderDetail() {
           : "",
       ].join("");
   const caps = [
-    v.vision ? `<span class="badge prov"><i data-lucide="eye" class="lucide"></i> Vision</span>` : "",
-    v.reasoning ? `<span class="badge prov"><i data-lucide="brain" class="lucide"></i> Reasoning</span>` : "",
-    v.function_calling ? `<span class="badge prov"><i data-lucide="wrench" class="lucide"></i> Functions</span>` : "",
+    v.vision ? `<span class="badge prov"><i data-lucide='eye' class='lucide'></i> Vision</span>` : "",
+    v.reasoning ? `<span class="badge prov"><i data-lucide='brain' class='lucide'></i> Reasoning</span>` : "",
+    v.function_calling ? `<span class="badge prov"><i data-lucide='wrench' class='lucide'></i> Functions</span>` : "",
   ].join("");
   const grid =
     [
@@ -1914,14 +1914,14 @@ function mbRenderDetail() {
   const isText = !v.type || v.type === "text";
   const pickDisabled = active || !isText;
   const pickLabel = active
-    ? "<i data-lucide="check" class="lucide"></i> Активна"
+    ? "<i data-lucide='check' class='lucide'></i> Активна"
     : !isText
       ? "Генерация (скоро)"
       : "Выбрать";
   el.innerHTML = `
         <div class="dhead">
           <div class="dname">${esc(v.name)}</div>
-          <button class="mb-star ${fav ? "on" : ""}" data-star="${esc(id)}" title="В избранное">${fav ? "<i data-lucide="star" class="lucide"></i>" : "<i data-lucide="star" class="lucide"></i>"}</button>
+          <button class="mb-star ${fav ? "on" : ""}" data-star="${esc(id)}" title="В избранное">${fav ? "<i data-lucide='star' class='lucide'></i>" : "<i data-lucide='star' class='lucide'></i>"}</button>
         </div>
         <div class="mb-badges">${badges.join("")}${caps}</div>
         <div class="mb-grid">${grid}</div>
@@ -1963,7 +1963,7 @@ async function mbRenderList() {
     const isFree = g.free === true;
     const pingBtn =
       (g.key === "openrouter" || g.key === "gemini") && count > 0
-        ? `<button class="ping-btn" data-ping="${g.key}" ${mbState.pinging[g.key] ? "disabled" : ""}><i data-lucide="refresh-cw" class="lucide"></i> Обновить</button>`
+        ? `<button class="ping-btn" data-ping="${g.key}" ${mbState.pinging[g.key] ? "disabled" : ""}><i data-lucide='refresh-cw' class='lucide'></i> Обновить</button>`
         : "";
     const pingTime =
       isFree && mbState.lastPing[g.key]
@@ -1974,9 +1974,9 @@ async function mbRenderList() {
           <div class="gbody">`;
     if (body === null) html += `<div class="mb-loading">Загрузка…</div>`;
     else if (body && body.error)
-      html += `<div class="mb-empty"><i data-lucide="alert-triangle" class="lucide"></i> ${esc(body.error)}</div>`;
+      html += `<div class="mb-empty"><i data-lucide='alert-triangle' class='lucide'></i> ${esc(body.error)}</div>`;
     else if (!body.length)
-      html += `<div class="mb-empty">${g.key === "favorite" ? "Избранное пусто — добавь звездой <i data-lucide="star" class="lucide"></i> в карточке." : "Нет моделей."}</div>`;
+      html += `<div class="mb-empty">${g.key === "favorite" ? "Избранное пусто — добавь звездой <i data-lucide='star' class='lucide'></i> в карточке." : "Нет моделей."}</div>`;
     else {
       body.forEach((m) => {
         const id = m.model_id || m.id;
@@ -1998,7 +1998,7 @@ async function mbRenderList() {
               <span class="iname">${esc(name)}</span>
               ${isFreeModel ? '<span class="ibadges"><span class="mb-mini">FREE</span></span>' : ""}
               ${typeBadge}
-              <span class="istar ${fav ? "on" : ""}">${fav ? "<i data-lucide="star" class="lucide"></i>" : "<i data-lucide="star" class="lucide"></i>"}</span>
+              <span class="istar ${fav ? "on" : ""}">${fav ? "<i data-lucide='star' class='lucide'></i>" : "<i data-lucide='star' class='lucide'></i>"}</span>
             </div>`;
       });
     }
@@ -2045,7 +2045,7 @@ async function mbSelect(id) {
     await mbRenderList();
     mbRenderDetail();
   } catch (e) {
-    toast("<i data-lucide="alert-triangle" class="lucide"></i> " + e, "err");
+    toast("<i data-lucide='alert-triangle' class='lucide'></i> " + e, "err");
   }
 }
 async function mbPick(id) {
@@ -2061,7 +2061,7 @@ async function mbPick(id) {
     log("модель: " + id);
     mbClose();
   } catch (e) {
-    await showAlert("Ошибка", "<i data-lucide="alert-triangle" class="lucide"></i> " + String(e));
+    await showAlert("Ошибка", "<i data-lucide='alert-triangle' class='lucide'></i> " + String(e));
   }
 }
 async function mbToggleFav(id) {
@@ -2107,7 +2107,7 @@ async function mbToggleFav(id) {
     await mbRenderList();
     mbRenderDetail();
   } catch (e) {
-    toast("<i data-lucide="alert-triangle" class="lucide"></i> " + e, "err");
+    toast("<i data-lucide='alert-triangle' class='lucide'></i> " + e, "err");
   }
 }
 async function mbPingGroup(groupKey) {
@@ -2134,10 +2134,10 @@ async function mbPingGroup(groupKey) {
       mbState.working[groupKey] = working;
       mbSavePingStore();
     } else {
-      log("<i data-lucide="alert-triangle" class="lucide"></i> " + (data.error || "ошибка пинга"));
+      log("<i data-lucide='alert-triangle' class='lucide'></i> " + (data.error || "ошибка пинга"));
     }
   } catch (e) {
-    log("<i data-lucide="alert-triangle" class="lucide"></i> " + e);
+    log("<i data-lucide='alert-triangle' class='lucide'></i> " + e);
   }
   mbState.pinging[groupKey] = false;
   if (overlay) overlay.remove();
@@ -2215,7 +2215,7 @@ $("#models").addEventListener("pointerdown", () => {
   b.classList.add("ping");
 });
 $("#mb_filter").addEventListener("click", () =>
-  log("<i data-lucide="settings" class="lucide"></i> Фильтры появятся позже"),
+  log("<i data-lucide='settings' class='lucide'></i> Фильтры появятся позже"),
 );
 $("#mb_search").addEventListener("input", (e) => {
   mbState.search = e.target.value;
@@ -2312,14 +2312,14 @@ $("#s_save").addEventListener("click", async () => { vibClick();
       return;
     }
     status.style.color = "#6fcf7f";
-    status.textContent = "сохранено <i data-lucide="check" class="lucide"></i>";
+    status.textContent = "сохранено <i data-lucide='check' class='lucide'></i>";
     PROVIDERS.forEach((p) => {
       $("#s_key_" + p).value = "";
     });
     log("модель: " + data.settings.selected_model);
   } catch (err) {
     status.style.color = "#e06b6b";
-    status.textContent = "<i data-lucide="alert-triangle" class="lucide"></i> " + String(err);
+    status.textContent = "<i data-lucide='alert-triangle' class='lucide'></i> " + String(err);
   }
 });
 
@@ -2469,8 +2469,8 @@ async function tplRender() {
           </div>
           <div class="tpl-actions">
             ${resetBtn}
-            ${t.recommended ? "" : `<button class="btn ghost sm tpl-edit" data-id="${esc(t.id)}" title="Изменить"><i data-lucide="pencil" class="lucide"></i></button>`}
-            <button class="btn ghost sm tpl-del" data-id="${esc(t.id)}" title="Удалить"><i data-lucide="x" class="lucide"></i></button>
+            ${t.recommended ? "" : `<button class="btn ghost sm tpl-edit" data-id="${esc(t.id)}" title="Изменить"><i data-lucide='pencil' class='lucide'></i></button>`}
+            <button class="btn ghost sm tpl-del" data-id="${esc(t.id)}" title="Удалить"><i data-lucide='x' class='lucide'></i></button>
           </div>
         `;
     wrap.appendChild(card);
@@ -2761,7 +2761,7 @@ function exportChat(format) {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  toast("Экспортировано <i data-lucide="check" class="lucide"></i>", "ok");
+  toast("Экспортировано <i data-lucide='check' class='lucide'></i>", "ok");
 }
 $("#s_export_md").addEventListener("click", () => exportChat("md"));
 $("#s_export_txt").addEventListener("click", () => exportChat("txt"));
@@ -2774,7 +2774,7 @@ $("#s_pwa").addEventListener("click", async () => {
   };
   try {
     if (window.matchMedia("(display-mode: standalone)").matches) {
-      say("уже запущено как приложение <i data-lucide="check" class="lucide"></i>", "#6fcf7f");
+      say("уже запущено как приложение <i data-lucide='check' class='lucide'></i>", "#6fcf7f");
       return;
     }
     if (inTelegram) {
@@ -2801,7 +2801,7 @@ $("#s_pwa").addEventListener("click", async () => {
       window.deferredPrompt.prompt();
       const { outcome } = await window.deferredPrompt.userChoice;
       say(
-        outcome === "accepted" ? "установка начата <i data-lucide="check" class="lucide"></i>" : "отменено",
+        outcome === "accepted" ? "установка начата <i data-lucide='check' class='lucide'></i>" : "отменено",
         outcome === "accepted" ? "#6fcf7f" : "#e0a96b",
       );
       window.deferredPrompt = null;
@@ -2837,7 +2837,7 @@ $("#s_pwa").addEventListener("click", async () => {
         "#e0a96b",
       );
   } catch (err) {
-    say("<i data-lucide="alert-triangle" class="lucide"></i> " + String(err), "#e06b6b");
+    say("<i data-lucide='alert-triangle' class='lucide'></i> " + String(err), "#e06b6b");
   }
 });
 
@@ -2920,7 +2920,7 @@ async function tryAutoAdmin() {
       await tryAutoAdmin();
     }
   } catch (e) {
-    log("<i data-lucide="alert-triangle" class="lucide"></i> ошибка инициализации: " + (e && e.message ? e.message : String(e)));
+    log("<i data-lucide='alert-triangle' class='lucide'></i> ошибка инициализации: " + (e && e.message ? e.message : String(e)));
     console.error(e);
   }
 })();
@@ -2934,7 +2934,7 @@ window.addEventListener("DOMContentLoaded", () => {
       (lg.textContent === "инициализация..." || lg.textContent === "загрузка…")
     ) {
       // auth ещё не отработал или упала — покажем подсказку
-      log("<i data-lucide="alert-triangle" class="lucide"></i> не удалось подключиться. Открой консоль (eruda) для деталей.");
+      log("<i data-lucide='alert-triangle' class='lucide'></i> не удалось подключиться. Открой консоль (eruda) для деталей.");
     }
   }, 12000);
 });

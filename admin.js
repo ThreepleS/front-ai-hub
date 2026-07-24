@@ -151,7 +151,7 @@ function keysHtml(keys) {
   return entries
     .map(
       ([prov, v]) =>
-        `<span class="pill prov">${esc(prov)} ${v && v.has ? "<i data-lucide="check" class="lucide"></i>" : "—"}</span>`,
+        `<span class="pill prov">${esc(prov)} ${v && v.has ? "<i data-lucide='check' class='lucide'></i>" : "—"}</span>`,
     )
     .join(" ");
 }
@@ -170,8 +170,8 @@ function renderUsers(users) {
           <td>${esc(u.tokens_total) || "0"}</td>
           <td>${keysHtml(u.keys)}</td>
           <td><div class="btns">
-            <button class="btn ghost sm" onclick="usrAction('clear',${u.user_id})"><i data-lucide="trash-2" class="lucide"></i> история</button>
-            <button class="btn danger sm" onclick="usrAction('reset',${u.user_id})"><i data-lucide="refresh-cw" class="lucide"></i> сброс</button>
+            <button class="btn ghost sm" onclick="usrAction('clear',${u.user_id})"><i data-lucide='trash-2' class='lucide'></i> история</button>
+            <button class="btn danger sm" onclick="usrAction('reset',${u.user_id})"><i data-lucide='refresh-cw' class='lucide'></i> сброс</button>
           </div></td>
         </tr>`,
     )
@@ -196,8 +196,8 @@ function renderWhitelist(list) {
       const isAdmin = e.user_id == ADMIN();
       const type =
         e.access_type === "temporary"
-          ? `<span class="pill temp"><i data-lucide="hourglass" class="lucide"></i> временный</span>`
-          : `<span class="pill perm"><i data-lucide="infinity" class="lucide"></i> вечный</span>`;
+          ? `<span class="pill temp"><i data-lucide='hourglass' class='lucide'></i> временный</span>`
+          : `<span class="pill perm"><i data-lucide='infinity' class='lucide'></i> вечный</span>`;
       let expInfo = "";
       if (e.access_type === "temporary") {
         const ms = expToMs(e.access_expires_at);
@@ -205,23 +205,16 @@ function renderWhitelist(list) {
           const daysLeft = Math.max(0, Math.ceil((ms - Date.now()) / 86400000));
           const d = new Date(ms);
           expInfo = `<div class="muted" style="margin-top:3px">осталось ${daysLeft} дн. (до ${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()})</div>`;
-if (window.lucide) {
-  lucide.createIcons();
-  new MutationObserver(() => {
-    if (document.querySelector('[data-lucide]')) {
-      lucide.createIcons();
-    }
-  }).observe(document.body, { subtree: true, childList: true, attributes: true });
-}
+      }
       }
       return `<tr>
           <td>${isAdmin ? '<span class="pill adm">админ</span>' : ""}<span class="mono">${esc(e.user_id)}</span></td>
           <td>${type}${expInfo}</td>
           <td>${esc(e.note) || "—"}</td>
           <td><div class="btns">
-            <button class="btn ghost sm" onclick="wlNote(${e.user_id})"><i data-lucide="pencil" class="lucide"></i> пометка</button>
-            ${e.access_type === "temporary" && !isAdmin ? `<button class="btn ghost sm" onclick="wlAddDays(${e.user_id})"><i data-lucide="plus" class="lucide"></i> дни</button>` : ""}
-            ${isAdmin ? "" : `<button class="btn danger sm" onclick="wlRemove(${e.user_id})"><i data-lucide="x" class="lucide"></i> удалить</button>`}
+            <button class="btn ghost sm" onclick="wlNote(${e.user_id})"><i data-lucide='pencil' class='lucide'></i> пометка</button>
+            ${e.access_type === "temporary" && !isAdmin ? `<button class="btn ghost sm" onclick="wlAddDays(${e.user_id})"><i data-lucide='plus' class='lucide'></i> дни</button>` : ""}
+            ${isAdmin ? "" : `<button class="btn danger sm" onclick="wlRemove(${e.user_id})"><i data-lucide='x' class='lucide'></i> удалить</button>`}
           </div></td>
         </tr>`;
     })
@@ -313,4 +306,13 @@ function flash(t, isErr) {
     m.textContent = "";
     m.className = "muted";
   }, 2500);
+}
+
+if (window.lucide) {
+  lucide.createIcons();
+  new MutationObserver(() => {
+    if (document.querySelector('[data-lucide]')) {
+      lucide.createIcons();
+    }
+  }).observe(document.body, { subtree: true, childList: true, attributes: true });
 }
