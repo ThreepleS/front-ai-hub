@@ -83,16 +83,16 @@ document.getElementById("adminThemeToggle").addEventListener("click", (e) => {
 });
 
 async function doLogin() {
-  $("#login_err").textContent = "запрос к серверу…";
+  $("#login_err").innerHTML = "запрос к серверу…";
   let data;
   try {
     data = await pjson("summary");
   } catch (e) {
-    $("#login_err").textContent = "⚠️ сетевая ошибка: " + String(e);
+    $("#login_err").innerHTML = "<i data-lucide='alert-triangle' class='lucide'></i> сетевая ошибка: " + String(e);
     return;
   }
   if (!data.ok) {
-    $("#login_err").textContent = "⛔ " + (data.error || JSON.stringify(data));
+    $("#login_err").innerHTML = "<i data-lucide='ban' class='lucide'></i> " + (data.error || JSON.stringify(data));
     return;
   }
   if (data.admin_id) currentAdminId = String(data.admin_id);
@@ -103,7 +103,7 @@ async function doLogin() {
 async function boot() {
   if (!inTelegram && !initData) {
     $("#login_err").textContent =
-      "⛔ Откройте админ-панель внутри Telegram (через бота).";
+      "<i data-lucide='ban' class='lucide'></i> Откройте админ-панель внутри Telegram (через бота).";
     return;
   }
   await doLogin();
@@ -151,7 +151,7 @@ function keysHtml(keys) {
   return entries
     .map(
       ([prov, v]) =>
-        `<span class="pill prov">${esc(prov)} ${v && v.has ? "✅" : "—"}</span>`,
+        `<span class="pill prov">${esc(prov)} ${v && v.has ? "<i data-lucide="check" class="lucide"></i>" : "—"}</span>`,
     )
     .join(" ");
 }
@@ -170,8 +170,8 @@ function renderUsers(users) {
           <td>${esc(u.tokens_total) || "0"}</td>
           <td>${keysHtml(u.keys)}</td>
           <td><div class="btns">
-            <button class="btn ghost sm" onclick="usrAction('clear',${u.user_id})">🗑 история</button>
-            <button class="btn danger sm" onclick="usrAction('reset',${u.user_id})">♻ сброс</button>
+            <button class="btn ghost sm" onclick="usrAction('clear',${u.user_id})"><i data-lucide="trash-2" class="lucide"></i> история</button>
+            <button class="btn danger sm" onclick="usrAction('reset',${u.user_id})"><i data-lucide="refresh-cw" class="lucide"></i> сброс</button>
           </div></td>
         </tr>`,
     )
@@ -196,8 +196,8 @@ function renderWhitelist(list) {
       const isAdmin = e.user_id == ADMIN();
       const type =
         e.access_type === "temporary"
-          ? `<span class="pill temp">⏳ временный</span>`
-          : `<span class="pill perm">♾️ вечный</span>`;
+          ? `<span class="pill temp"><i data-lucide="hourglass" class="lucide"></i> временный</span>`
+          : `<span class="pill perm"><i data-lucide="infinity" class="lucide"></i> вечный</span>`;
       let expInfo = "";
       if (e.access_type === "temporary") {
         const ms = expToMs(e.access_expires_at);
@@ -205,16 +205,23 @@ function renderWhitelist(list) {
           const daysLeft = Math.max(0, Math.ceil((ms - Date.now()) / 86400000));
           const d = new Date(ms);
           expInfo = `<div class="muted" style="margin-top:3px">осталось ${daysLeft} дн. (до ${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()})</div>`;
-        }
+if (window.lucide) {
+  lucide.createIcons();
+  new MutationObserver(() => {
+    if (document.querySelector('[data-lucide]')) {
+      lucide.createIcons();
+    }
+  }).observe(document.body, { subtree: true, childList: true, attributes: true });
+}
       }
       return `<tr>
           <td>${isAdmin ? '<span class="pill adm">админ</span>' : ""}<span class="mono">${esc(e.user_id)}</span></td>
           <td>${type}${expInfo}</td>
           <td>${esc(e.note) || "—"}</td>
           <td><div class="btns">
-            <button class="btn ghost sm" onclick="wlNote(${e.user_id})">✏️ пометка</button>
-            ${e.access_type === "temporary" && !isAdmin ? `<button class="btn ghost sm" onclick="wlAddDays(${e.user_id})">➕ дни</button>` : ""}
-            ${isAdmin ? "" : `<button class="btn danger sm" onclick="wlRemove(${e.user_id})">✕ удалить</button>`}
+            <button class="btn ghost sm" onclick="wlNote(${e.user_id})"><i data-lucide="pencil" class="lucide"></i> пометка</button>
+            ${e.access_type === "temporary" && !isAdmin ? `<button class="btn ghost sm" onclick="wlAddDays(${e.user_id})"><i data-lucide="plus" class="lucide"></i> дни</button>` : ""}
+            ${isAdmin ? "" : `<button class="btn danger sm" onclick="wlRemove(${e.user_id})"><i data-lucide="x" class="lucide"></i> удалить</button>`}
           </div></td>
         </tr>`;
     })

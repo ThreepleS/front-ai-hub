@@ -192,7 +192,6 @@ function renderDialog(dialog) {
   box.scrollTop = box.scrollHeight;
   updateEmptyState();
   currentModelId = dialog.model || currentModelId;
-  if (window.lucide) lucide.createIcons();
 }
 
 function renderDialogsPanel() {
@@ -220,16 +219,13 @@ function renderDialogsPanel() {
           <div class="dialog-item-main" data-id="${d.id}">
             <div class="dialog-item-name" title="Нажми, чтобы переименовать">
               <span class="dialog-name-text">${esc(d.name || "")}</span>
-              <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать"><i data-lucide="pencil" class="icon"></i></button>
+              <button class="dialog-item-edit" data-edit="${d.id}" title="Переименовать"><i data-lucide="pencil" class="lucide"></i></button>
             </div>
             <div class="dialog-item-meta">${date} · ${(d.messages || []).length} сообщ.</div>
           </div>
-          <button class="dialog-item-del" data-del="${d.id}" title="Удалить"><i data-lucide="trash-2" class="icon"></i></button>
+          <button class="dialog-item-del" data-del="${d.id}" title="Удалить"><i data-lucide="trash-2" class="lucide"></i></button>
         `;
-        panel.appendChild(item);
-      });
-      if (window.lucide) lucide.createIcons();
-    });
+        const startRename = () => {
           const nameEl = item.querySelector(".dialog-name-text");
           if (!nameEl) return;
           const inp = document.createElement("input");
@@ -499,14 +495,14 @@ const MATH_SYM = {
   angle: "∠",
   perp: "⊥",
   parallel: "∥",
-  rightarrow: "<i data-lucide='arrow-right' class='icon' style='width:14px;height:14px'></i>",
-  leftarrow: "<i data-lucide='arrow-left' class='icon' style='width:14px;height:14px'></i>",
-  Rightarrow: "<i data-lucide='arrow-right' class='icon' style='width:14px;height:14px'></i>",
-  Leftarrow: "<i data-lucide='arrow-left' class='icon' style='width:14px;height:14px'></i>",
-  leftrightarrow: "<i data-lucide='arrows-left-right' class='icon' style='width:14px;height:14px'></i>",
-  Leftrightarrow: "<i data-lucide='arrows-left-right' class='icon' style='width:14px;height:14px'></i>",
-  to: "<i data-lucide='arrow-right' class='icon' style='width:14px;height:14px'></i>",
-  mapsto: "<i data-lucide='arrow-right' class='icon' style='width:14px;height:14px'></i>",
+  rightarrow: "→",
+  leftarrow: "←",
+  Rightarrow: "⇒",
+  Leftarrow: "⇐",
+  leftrightarrow: "↔",
+  Leftrightarrow: "⇔",
+  to: "→",
+  mapsto: "↦",
   dots: "…",
   ldots: "…",
   cdots: "⋯",
@@ -980,7 +976,7 @@ function addCodeCopy(root) {
     wrap.appendChild(pre);
     const btn = document.createElement("button");
     btn.className = "code-copy";
-    btn.textContent = "<i data-lucide='clipboard-list' class='icon'></i>";
+    btn.textContent = "<i data-lucide="clipboard" class="lucide"></i>";
     btn.title = "Копировать";
     btn.addEventListener("click", () => {
       const code = pre.querySelector("code");
@@ -988,8 +984,8 @@ function addCodeCopy(root) {
       navigator.clipboard
         .writeText(txt)
         .then(() => {
-    btn.textContent = "<i data-lucide='check' class='icon'></i>";
-    setTimeout(() => (btn.textContent = "<i data-lucide='clipboard-list' class='icon'></i>"), 1200);
+          btn.textContent = "<i data-lucide="check" class="lucide"></i>";
+          setTimeout(() => (btn.textContent = "<i data-lucide="clipboard" class="lucide"></i>"), 1200);
         })
         .catch(() => {});
     });
@@ -1013,7 +1009,6 @@ function addHistoryMessage(role, content, image) {
   }
   addMessage(role, html);
   autoSaveCurrentDialog();
-  if (window.lucide) lucide.createIcons();
 }
 
 // --- Открыть веб/PWA-версию в браузере с передачей init_data ---
@@ -1166,11 +1161,7 @@ async function auth(devId) {
     const tip =
       "Не удалось достучаться до сервера. Проверь интернет и адрес Functions.";
     log("<i data-lucide="alert-triangle" class="lucide"></i> " + tip);
-    if (!tourActive) {
-      await showAlert("Ошибка подключения", "<i data-lucide="alert-triangle" class="lucide"></i> " + tip);
-    } else {
-      queuedAuthError = { title: "Ошибка подключения", message: "<i data-lucide="alert-triangle" class="lucide"></i> " + tip };
-    }
+    await showAlert("Ошибка подключения", "<i data-lucide="alert-triangle" class="lucide"></i> " + tip);
     setStatus("err");
     return false;
   }
@@ -1178,11 +1169,7 @@ async function auth(devId) {
     const data = await res.json();
     if (!data.ok) {
       log(data.error || "нет доступа");
-      if (!tourActive) {
-        await showAlert("Ошибка", "<i data-lucide="alert-triangle" class="lucide"></i> " + (data.error || "нет доступа"));
-      } else {
-        queuedAuthError = { title: "Ошибка", message: "<i data-lucide="alert-triangle" class="lucide"></i> " + (data.error || "нет доступа") };
-      }
+      await showAlert("Ошибка", "<i data-lucide="alert-triangle" class="lucide"></i> " + (data.error || "нет доступа"));
       setStatus("err");
       return false;
     }
@@ -1191,26 +1178,7 @@ async function auth(devId) {
     if (isAdmin) $("#s_admin").style.display = "inline-block";
     fillSettings(data.settings);
     setStatus("ok");
-
-    if (data.needs_key && !tourActive) {
-      const historyEmpty = Array.isArray(data.history) && data.history.length === 0;
-      const seen = localStorage.getItem(TOUR_KEY) === "true";
-      console.debug("[auth] needs_key=" + data.needs_key + " historyEmpty=" + historyEmpty + " seen=" + seen);
-      if (historyEmpty || !seen) {
-        localStorage.removeItem(TOUR_KEY);
-        deferredOpenSettings = true;
-        console.debug("[auth] triggering tour for fresh or first-time user");
-        await initTour(true);
-      } else {
-        await ensureCurrentDialog();
-        openSettings("keys");
-      }
-    } else {
-      await ensureCurrentDialog();
-      if (data.needs_key && tourActive) {
-        deferredOpenSettings = true;
-      }
-    }
+    await ensureCurrentDialog();
 
     log("модель: " + (data.settings.selected_model || "—"));
     // Показываем чат
@@ -1218,6 +1186,10 @@ async function auth(devId) {
     $("#bar").style.display = "";
     $("#vision").style.display = "";
     updateEmptyState();
+    if (data.needs_key) {
+      log("<i data-lucide="alert-triangle" class="lucide"></i> укажи API-ключ в настройках");
+      openSettings("keys");
+    }
     return true;
   } catch (e) {
     log("<i data-lucide="alert-triangle" class="lucide"></i> сервер вернул не-JSON: " + String(e));
@@ -1261,12 +1233,11 @@ async function loadKeyInfo() {
   try {
     const res = await ef("keyinfo", {}, 10000);
     const data = await res.json();
-    console.debug("[keyinfo] response", data);
     if (!data.ok) return;
     PROVIDERS.forEach((p) => {
       const k = (data.keys && data.keys[p]) || {};
       const st = $("#key_status_" + p);
-      if (st) st.textContent = k.has ? "<svg class='icon'><use href='#icon-check'/></svg> сохранён" : "— нет";
+      if (st) st.textContent = k.has ? "<i data-lucide="check" class="lucide"></i> сохранён" : "— нет";
     });
   } catch {}
 }
@@ -1324,7 +1295,7 @@ function showAttach() {
   img.src = pendingImage.dataUrl;
   const rm = document.createElement("button");
   rm.className = "attach-rm";
-      rm.textContent = "<i data-lucide='x' class='icon'></i>";
+  rm.textContent = "<i data-lucide="x" class="lucide"></i>";
   rm.onclick = () => {
     pendingImage = null;
     showAttach();
@@ -1492,15 +1463,7 @@ ctxMenu.addEventListener("click", (e) => {
     ctxMsgEl.remove();
     updateEmptyState();
      
-
-if (window.lucide) {
-  lucide.createIcons();
-  new MutationObserver(() => {
-    if (document.querySelector('[data-lucide]')) {
-      lucide.createIcons();
-    }
-  }).observe(document.body, { subtree: true, childList: true, attributes: true });
-}    toast("Удалено", "ok");
+    toast("Удалено", "ok");
   }
   hideCtx();
 });
@@ -1893,7 +1856,7 @@ function mbRenderDetail() {
   ];
   badges.push(
     v.is_free
-      ? '<span class="badge free"><i data-lucide="check" class="icon"></i> Бесплатно</span>'
+      ? '<span class="badge free"><i data-lucide="check" class="lucide"></i> Бесплатно</span>'
       : '<span class="badge paid">Платно</span>',
   );
   const inTypes = (v.mod_in || "")
@@ -1929,7 +1892,7 @@ function mbRenderDetail() {
       ].join("");
   const caps = [
     v.vision ? `<span class="badge prov"><i data-lucide="eye" class="lucide"></i> Vision</span>` : "",
-    v.reasoning ? `<span class="badge prov"><svg class="icon"><use href="#icon-brain"/></svg> Reasoning</span>` : "",
+    v.reasoning ? `<span class="badge prov"><i data-lucide="brain" class="lucide"></i> Reasoning</span>` : "",
     v.function_calling ? `<span class="badge prov"><i data-lucide="wrench" class="lucide"></i> Functions</span>` : "",
   ].join("");
   const grid =
@@ -1958,7 +1921,7 @@ function mbRenderDetail() {
   el.innerHTML = `
         <div class="dhead">
           <div class="dname">${esc(v.name)}</div>
-          <button class="mb-star ${fav ? "on" : ""}" data-star="${esc(id)}" title="В избранное"><i data-lucide="${fav ? 'star' : 'star-off'}" class="icon"></i></button>
+          <button class="mb-star ${fav ? "on" : ""}" data-star="${esc(id)}" title="В избранное">${fav ? "<i data-lucide="star" class="lucide"></i>" : "<i data-lucide="star" class="lucide"></i>"}</button>
         </div>
         <div class="mb-badges">${badges.join("")}${caps}</div>
         <div class="mb-grid">${grid}</div>
@@ -2000,7 +1963,7 @@ async function mbRenderList() {
     const isFree = g.free === true;
     const pingBtn =
       (g.key === "openrouter" || g.key === "gemini") && count > 0
-        ? `<button class="ping-btn" data-ping="${g.key}" ${mbState.pinging[g.key] ? "disabled" : ""}><i data-lucide="refresh-cw" class="icon"></i> Обновить</button>`
+        ? `<button class="ping-btn" data-ping="${g.key}" ${mbState.pinging[g.key] ? "disabled" : ""}><i data-lucide="refresh-cw" class="lucide"></i> Обновить</button>`
         : "";
     const pingTime =
       isFree && mbState.lastPing[g.key]
@@ -2035,14 +1998,13 @@ async function mbRenderList() {
               <span class="iname">${esc(name)}</span>
               ${isFreeModel ? '<span class="ibadges"><span class="mb-mini">FREE</span></span>' : ""}
               ${typeBadge}
-              <span class="istar ${fav ? "on" : ""}"><i data-lucide="${fav ? 'star' : 'star-off'}" class="icon"></i></span>
+              <span class="istar ${fav ? "on" : ""}">${fav ? "<i data-lucide="star" class="lucide"></i>" : "<i data-lucide="star" class="lucide"></i>"}</span>
             </div>`;
       });
     }
     html += `</div></div>`;
   }
   list.innerHTML = html;
-  if (window.lucide) lucide.createIcons();
 }
 // Последовательно догружаем провайдеров (по одному, а не 4 параллельно),
 // чтобы медленный туннель не задыхался от одновременных 179КБ-запросов.
@@ -2069,15 +2031,13 @@ async function mbOpen() {
   await mbRenderList();
   mbRenderDetail();
   mbLoadAll();
-  if (window.lucide) lucide.createIcons();
 }
 function mbClose() {
   $("#modelBrowser").classList.remove("open");
   $("#messages").style.display = "";
   $("#vision").style.display = "";
-  updateEmptyState();
+    updateEmptyState();
   $("#bar").style.display = "";
-  if (window.lucide) lucide.createIcons();
 }
 async function mbSelect(id) {
   mbState.selectedId = id;
@@ -2087,7 +2047,6 @@ async function mbSelect(id) {
   } catch (e) {
     toast("<i data-lucide="alert-triangle" class="lucide"></i> " + e, "err");
   }
-  if (window.lucide) lucide.createIcons();
 }
 async function mbPick(id) {
   try {
@@ -2104,7 +2063,6 @@ async function mbPick(id) {
   } catch (e) {
     await showAlert("Ошибка", "<i data-lucide="alert-triangle" class="lucide"></i> " + String(e));
   }
-  if (window.lucide) lucide.createIcons();
 }
 async function mbToggleFav(id) {
   const fav = mbIsFav(id);
@@ -2345,11 +2303,9 @@ $("#s_save").addEventListener("click", async () => { vibClick();
     vib_strength: getVibStrength(),
   });
   payload.provider_keys = collectProviderKeys();
-  console.debug("[settings] save payload keys=", Object.keys(payload), "provider_keys=", payload.provider_keys);
   try {
     const res = await ef("settings", payload, 15000);
     const data = await res.json();
-    console.debug("[settings] save response", data);
     if (!data.ok) {
       status.style.color = "#e06b6b";
       status.textContent = data.error || "ошибка";
@@ -2360,32 +2316,10 @@ $("#s_save").addEventListener("click", async () => { vibClick();
     PROVIDERS.forEach((p) => {
       $("#s_key_" + p).value = "";
     });
-    await loadKeyInfo();
     log("модель: " + data.settings.selected_model);
-    if (tourActive && localStorage.getItem(TOUR_KEY) === "true") {
-      const congrats = $("#tourCongrats");
-      if (congrats) {
-        congrats.classList.add("open");
-        const ok = $("#tourCongratsOk");
-        const close = () => {
-          congrats.classList.remove("open");
-          if (ok) ok.removeEventListener("click", onOk);
-          const bd = congrats.querySelector(".modal-backdrop");
-          if (bd) bd.removeEventListener("click", onOk);
-          congrats.querySelectorAll("[data-close]").forEach((b) => b.removeEventListener("click", onOk));
-          closeSettings();
-          setTimeout(() => initTour(true), 120);
-        };
-        const onOk = () => close();
-        if (ok) ok.addEventListener("click", onOk);
-        if (bd) bd.addEventListener("click", onOk);
-        congrats.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", onOk));
-      }
-    }
   } catch (err) {
     status.style.color = "#e06b6b";
     status.textContent = "<i data-lucide="alert-triangle" class="lucide"></i> " + String(err);
-    console.error("[settings] save failed", err);
   }
 });
 
@@ -2526,7 +2460,7 @@ async function tplRender() {
       : "";
     const resetBtn =
       t.recommended && t.originalText && t.text !== t.originalText
-        ? `<button class="btn ghost sm tpl-reset" data-id="${esc(t.id)}" title="Сбросить"><i data-lucide="undo-2" class="icon"></i></button>`
+        ? `<button class="btn ghost sm tpl-reset" data-id="${esc(t.id)}" title="Сбросить">↩</button>`
         : "";
     card.innerHTML = `
           <div class="tpl-info" data-id="${esc(t.id)}">
@@ -2535,8 +2469,8 @@ async function tplRender() {
           </div>
           <div class="tpl-actions">
             ${resetBtn}
-            ${t.recommended ? "" : `<button class="btn ghost sm tpl-edit" data-id="${esc(t.id)}" title="Изменить"><i data-lucide="pencil" class="icon"></i></button>`}
-            <button class="btn ghost sm tpl-del" data-id="${esc(t.id)}" title="Удалить"><i data-lucide="x" class="icon"></i></button>
+            ${t.recommended ? "" : `<button class="btn ghost sm tpl-edit" data-id="${esc(t.id)}" title="Изменить"><i data-lucide="pencil" class="lucide"></i></button>`}
+            <button class="btn ghost sm tpl-del" data-id="${esc(t.id)}" title="Удалить"><i data-lucide="x" class="lucide"></i></button>
           </div>
         `;
     wrap.appendChild(card);
@@ -2831,21 +2765,12 @@ function exportChat(format) {
 }
 $("#s_export_md").addEventListener("click", () => exportChat("md"));
 $("#s_export_txt").addEventListener("click", () => exportChat("txt"));
-$("#s_replay_tour").addEventListener("click", () => {
-  localStorage.removeItem(TOUR_KEY);
-  closeSettings();
-  setTimeout(() => initTour(true), 120);
-});
-$("#s_keys_help").addEventListener("click", (e) => {
-  e.preventDefault();
-  window.open("https://cat-penguin-ac7.notion.site/API-3a753a5bca1a808bb9b6e2f4be78d865?source=copy_link", "_blank", "noopener,noreferrer");
-});
 
 $("#s_pwa").addEventListener("click", async () => {
   const status = $("#s_status");
   const say = (txt, color) => {
     status.style.color = color;
-    status.innerHTML = txt;
+    status.textContent = txt;
   };
   try {
     if (window.matchMedia("(display-mode: standalone)").matches) {
@@ -2919,18 +2844,7 @@ $("#s_pwa").addEventListener("click", async () => {
 // --- Gear / dev login ------------------------------------------------
 function openSettings(tab = null) {
   mbClose();
-  const settingsEl = $("#settings");
-  if (settingsEl) {
-    settingsEl.classList.add("open");
-    const backdrop = $("#tourBackdrop");
-    if (tourActive && backdrop) {
-      backdrop.classList.add("tour-settings-mode");
-      const overlay = $("#tourOverlay");
-      if (overlay) {
-        overlay.style.display = "none";
-      }
-    }
-  }
+  $("#settings").classList.add("open");
   $("#messages").style.display = "none";
   if ($("#emptyState")) $("#emptyState").style.display = "none";
   $("#attach").style.display = "none";
@@ -2947,7 +2861,6 @@ function openSettings(tab = null) {
     const content = document.querySelector(`.tab-content[data-content="${tab}"]`);
     if (content) content.classList.add("active");
   }
-  if (window.lucide) lucide.createIcons();
 }
 function closeSettings() {
   $("#settings").classList.remove("open");
@@ -2956,7 +2869,6 @@ function closeSettings() {
   $("#vision").style.display = "";
   $("#bar").style.display = "";
   updateEmptyState();
-  if (window.lucide) lucide.createIcons();
 }
 $("#gear").addEventListener("click", () => { vibClick();
   if ($("#settings").classList.contains("open")) closeSettings();
@@ -3039,7 +2951,7 @@ function showConfirm(title, message) {
   return new Promise((resolve) => {
     const modal = $("#confirmModal");
     $("#confirmTitle").textContent = title || "Подтверждение";
-    $("#confirmBody").textContent = message || "";
+    $("#confirmBody").innerHTML = message || "";
     modal.classList.add("open");
     const onOk = () => {
       modal.classList.remove("open");
@@ -3065,8 +2977,8 @@ function showConfirm(title, message) {
 function showAlert(title, message) {
   return new Promise((resolve) => {
     const modal = $("#alertModal");
-  $("#alertTitle").textContent = title || "Внимание";
-  $("#alertBody").innerHTML = message || "";
+    $("#alertTitle").textContent = title || "Внимание";
+    $("#alertBody").innerHTML = message || "";
     modal.classList.add("open");
     const cleanup = () => {
       modal.classList.remove("open");
@@ -3126,286 +3038,13 @@ async function saveLocalHistory() {
   await autoSaveCurrentDialog();
 }
 
-// --- Onboarding Tour ---------------------------------------------------
-const TOUR_KEY = "has_seen_tutorial";
-let tourActive = false;
-let queuedAuthError = null;
-let deferredOpenSettings = false;
-
-function showQueuedAuthErrorIfAny() {
-  if (queuedAuthError) {
-    const { title, message } = queuedAuthError;
-    queuedAuthError = null;
-    showAlert(title, message);
-  }
-}
-
-function openDeferredSettingsIfAny() {
-  if (deferredOpenSettings) {
-    deferredOpenSettings = false;
-    openSettings("keys");
-  }
-}
-
-async function initTour(force = false) {
-  if (!force && new URLSearchParams(location.search).get("tour") !== "1") return;
-  const welcome = $("#tourWelcome");
-  if (!welcome) return;
-  tourActive = true;
-  welcome.classList.add("open");
-
-  const yes = $("#tourYes");
-  const no = $("#tourNo");
-  const cleanup = (run = false) => {
-    welcome.classList.remove("open");
-    yes.removeEventListener("click", onYes);
-    no.removeEventListener("click", onNo);
-    const bd = welcome.querySelector(".modal-backdrop");
-    if (bd) bd.removeEventListener("click", onNo);
-    welcome.querySelectorAll("[data-close]").forEach((b) => b.removeEventListener("click", onNo));
-    localStorage.setItem(TOUR_KEY, "true");
-    if (!run) {
-      tourActive = false;
-      showQueuedAuthErrorIfAny();
-      openDeferredSettingsIfAny();
+if (window.lucide) {
+  lucide.createIcons();
+  new MutationObserver(() => {
+    if (document.querySelector('[data-lucide]')) {
+      lucide.createIcons();
     }
-  };
-  const onYes = async () => {
-    cleanup(true);
-    await runTour();
-  };
-  const onNo = () => {
-    cleanup(false);
-  };
-  yes.addEventListener("click", onYes);
-  no.addEventListener("click", onNo);
-  const bd = welcome.querySelector(".modal-backdrop");
-  if (bd) bd.addEventListener("click", onNo);
-  welcome.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", onNo));
-}
-
-async function runTour() {
-  const backdrop = $("#tourBackdrop");
-  const overlay = $("#tourOverlay");
-  const tooltip = $("#tourTooltip");
-  const titleEl = $("#tourTooltipTitle");
-  const bodyEl = $("#tourTooltipBody");
-  const nextBtn = $("#tourNext");
-  const skipBtn = $("#tourSkip");
-  if (!backdrop || !tooltip || !overlay || !skipBtn) return;
-
-  const steps = [
-    {
-      target: "header",
-      title: "Добро пожаловать в приложение",
-      body: "Это верхняя панель. Здесь можно открыть браузер моделей, перейти к диалогам, начать новый чат, найти что-то в истории или зайти в настройки. Нажми «Далее», чтобы продолжить.",
-    },
-    {
-      target: "#models",
-      title: "Браузер моделей",
-      body: "Здесь выбирается модель ИИ. Вверху можно фильтровать по провайдеру: OpenRouter, OpenAI, Gemini, Groq, HuggingFace, Venice AI. Провайдер «Рекомендуемые модели» появится позже. Список моделей автоматически обновляется при каждом открытии.",
-    },
-    {
-      target: "#dialogsBtn",
-      title: "Диалоги",
-      body: "Открывает список всех диалогов. Ты можешь переключаться между ними, возвращаться к старым обсуждениям или удалять ненужные.",
-    },
-    {
-      target: "#newChatBtn",
-      title: "Новый чат",
-      body: "Создаёт новый пустой диалог. История переписки сохраняется отдельно для каждого чата, поэтому можно вести несколько тем одновременно.",
-    },
-    {
-      target: "#searchBtn",
-      title: "Поиск по истории",
-      body: "Позволяет быстро найти сообщение в текущем диалоге по ключевым словам. Просто введи запрос — приложение само подсветит нужные фрагменты.",
-    },
-    {
-      target: "#bar",
-      title: "Ввод сообщения",
-      body: "Основная рабочая область. Здесь печатается текст, прикрепляются фото и отправляются запросы модели. Можно писать обычным языком, не нужно команд.",
-    },
-    {
-      target: "#gear",
-      title: "Открой настройки",
-      body: "Сейчас нажми «Далее» — я открою настройки сам. Там можно выбрать модель, задать системный промпт, изменить лимит контекста и внешний вид. Самое главное — во вкладке «Ключи» добавить API-ключ, иначе чат не будет работать.",
-    },
-    {
-      target: "#s_keys",
-      title: "API-ключи",
-      body: "Без ключа чат не сможет отправлять запросы к модели. Выбери своего провайдера, вставь ключ и нажми «Сохранить». После этого я покажу, что делать дальше.",
-      settingsStep: true,
-    },
-    {
-      target: "#models",
-      title: "Браузер моделей",
-      body: "Сюда можно попасть из верхней панели. Здесь можно переключать провайдеров, смотреть доступные модели, отмечать избранные и запускать пинг до моделей, чтобы понять, какая быстрее всего отвечает. Сначала выбери провайдера, затем модель и вернись в чат.",
-    },
-    {
-      target: "#mb_filter",
-      title: "Фильтр провайдеров",
-      body: "Используй этот фильтр, чтобы быстро сузить список моделей по провайдеру: OpenRouter, OpenAI, Gemini, Groq, HuggingFace, Venice AI или Favorites. Провайдер «Рекомендуемые модели» появится позже.",
-    },
-    {
-      target: "#mb_list",
-      title: "Список моделей",
-      body: "Здесь отображаются все модели выбранного провайдера. Жми на модель, чтобы выбрать её для текущего диалога. Рядом можно добавить звезду — тогда модель попадёт в быстрый доступ во вкладке «Избранное».",
-    },
-    {
-      target: "#mb_detail",
-      title: "Карточка модели",
-      body: "При выборе модели открывается её описание: контекст, скорость, версия, pricing и badge-метки. Здесь можно посмотреть характеристики перед запуском и вернуться назад.",
-    },
-    {
-      target: "#mb_close",
-      title: "Закрыть браузер моделей",
-      body: "Когда модель выбрана, закрой браузер моделей и возвращайся в чат. После этого можно отправлять сообщения — они пойдут на выбранную модель.",
-    },
-  ];
-
-  let currentStep = 0;
-  let settingsOpenedForTour = false;
-  const SETTINGS_TARGETS = new Set(["#settings", "#s_keys", "#s_models", "#s_prompt", "#s_limit", "#s_stats", "#s_theme", "#s_sound", "#s_vibrate", "#s_pwa", "#s_web", "#s_admin", "#s_replay_tour", "#s_export_md", "#s_export_txt"]);
-
-  function positionTooltip(rect) {
-    const tooltipRect = tooltip.getBoundingClientRect();
-    let top = rect.bottom + 12;
-    let left = rect.left + rect.width / 2 - 160;
-
-    if (top + tooltipRect.height > window.innerHeight - 12) {
-      top = rect.top - tooltipRect.height - 12;
-    }
-    if (left < 12) left = 12;
-    if (left + 320 > window.innerWidth) left = window.innerWidth - 332;
-    if (top < 12) top = 12;
-
-    tooltip.style.top = top + "px";
-    tooltip.style.left = left + "px";
-  }
-
-  function updateOverlay(rect, settingsMode = false) {
-    if (settingsMode) {
-      overlay.style.clipPath = "";
-      overlay.style.background = "transparent";
-      return;
-    }
-    const pad = 8;
-    const x = rect.left - pad;
-    const y = rect.top - pad;
-    const w = rect.width + pad * 2;
-    const h = rect.height + pad * 2;
-    overlay.style.background = "rgba(0, 0, 0, 0.75)";
-    overlay.style.clipPath = `polygon(0px 0px, 0px 100vh, 100vw 100vh, 100vw 0px, 0px 0px, ${x}px ${y}px, ${x + w}px ${y}px, ${x + w}px ${y + h}px, ${x}px ${y + h}px, ${x}px ${y}px)`;
-  }
-
-  function applySpotlight(rect, settingsMode = false) {
-    document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
-    const target = $(steps[currentStep].target);
-    if (target) target.classList.add("tour-spotlight");
-    updateOverlay(rect, settingsMode);
-    positionTooltip(rect);
-  }
-
-  function showStep(index) {
-    if (index >= steps.length) {
-      closeTour();
-      return;
-    }
-    currentStep = index;
-    const step = steps[index];
-    const target = $(step.target);
-    if (!target) {
-      console.debug("[tour] step " + index + " missing target " + step.target + ", closing");
-      closeTour();
-      return;
-    }
-
-    const isSettingsTarget = step.target === "#settings" || step.target.startsWith("#s_");
-    const settingsMode = isSettingsTarget && $("#settings").classList.contains("open");
-
-    if (settingsMode) {
-      backdrop.classList.add("tour-settings-mode");
-      overlay.style.display = "none";
-      skipBtn.style.display = "none";
-    } else {
-      backdrop.classList.remove("tour-settings-mode");
-      overlay.style.display = "";
-      skipBtn.style.display = "";
-    }
-
-    titleEl.textContent = step.title;
-    bodyEl.textContent = step.body;
-    nextBtn.textContent = index === steps.length - 1 ? "Завершить" : "Далее";
-
-    const rect = target.getBoundingClientRect();
-    console.debug("[tour] step " + index + " target=" + step.target + " title=" + step.title + " rect=" + JSON.stringify({x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.width), h: Math.round(rect.height)}));
-    applySpotlight(rect, settingsMode);
-    backdrop.classList.add("active");
-    tooltip.style.display = "block";
-    if (window.lucide) lucide.createIcons();
-  }
-
-  function advanceTour() {
-    if (currentStep < steps.length - 1) {
-      showStep(currentStep + 1);
-    } else {
-      closeTour();
-    }
-  }
-
-  function closeTour() {
-    tourActive = false;
-    backdrop.classList.remove("active", "tour-settings-mode");
-    tooltip.style.display = "none";
-    overlay.style.clipPath = "";
-    overlay.style.background = "";
-    document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
-    nextBtn.removeEventListener("click", onNext);
-    skipBtn.removeEventListener("click", onSkip);
-    document.removeEventListener("click", tourClickHandler);
-    window.removeEventListener("resize", tourResizeHandler);
-    showQueuedAuthErrorIfAny();
-    openDeferredSettingsIfAny();
-    nextBtn.style.display = "";
-    currentStep = 0;
-    settingsOpenedForTour = false;
-  }
-
-  const onNext = () => {
-    const step = steps[currentStep];
-    if (step && step.target === "#gear" && !settingsOpenedForTour) {
-      openSettings("keys");
-      settingsOpenedForTour = true;
-    }
-    showStep(currentStep + 1);
-  };
-  const onSkip = () => closeTour();
-
-  nextBtn.addEventListener("click", onNext);
-  skipBtn.addEventListener("click", onSkip);
-
-  const tourClickHandler = (e) => {
-    if (!tourActive) return;
-    const step = steps[currentStep];
-    if (!step) return;
-    const target = $(step.target);
-    if (!target) return;
-    if (target.contains(e.target) || e.target === target) {
-      e.preventDefault();
-      e.stopPropagation();
-      setTimeout(() => advanceTour(), 80);
-    }
-  };
-  document.addEventListener("click", tourClickHandler, true);
-
-  const tourResizeHandler = () => {
-    if (!tourActive) return;
-    const target = $(steps[currentStep]?.target || "");
-    if (target) applySpotlight(target.getBoundingClientRect());
-  };
-  window.addEventListener("resize", tourResizeHandler);
-
-  showStep(0);
+  }).observe(document.body, { subtree: true, childList: true, attributes: true });
 }
 
  
