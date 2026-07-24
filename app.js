@@ -192,6 +192,7 @@ function renderDialog(dialog) {
   box.scrollTop = box.scrollHeight;
   updateEmptyState();
   currentModelId = dialog.model || currentModelId;
+  if (window.lucide) lucide.createIcons();
 }
 
 function renderDialogsPanel() {
@@ -225,7 +226,10 @@ function renderDialogsPanel() {
           </div>
           <button class="dialog-item-del" data-del="${d.id}" title="Удалить"><i data-lucide="trash-2" class="icon"></i></button>
         `;
-        const startRename = () => {
+        panel.appendChild(item);
+      });
+      if (window.lucide) lucide.createIcons();
+    });
           const nameEl = item.querySelector(".dialog-name-text");
           if (!nameEl) return;
           const inp = document.createElement("input");
@@ -1009,6 +1013,7 @@ function addHistoryMessage(role, content, image) {
   }
   addMessage(role, html);
   autoSaveCurrentDialog();
+  if (window.lucide) lucide.createIcons();
 }
 
 // --- Открыть веб/PWA-версию в браузере с передачей init_data ---
@@ -1488,7 +1493,14 @@ ctxMenu.addEventListener("click", (e) => {
     updateEmptyState();
      
 
-if (window.lucide) lucide.createIcons();    toast("Удалено", "ok");
+if (window.lucide) {
+  lucide.createIcons();
+  new MutationObserver(() => {
+    if (document.querySelector('[data-lucide]')) {
+      lucide.createIcons();
+    }
+  }).observe(document.body, { subtree: true, childList: true, attributes: true });
+}    toast("Удалено", "ok");
   }
   hideCtx();
 });
@@ -2030,6 +2042,7 @@ async function mbRenderList() {
     html += `</div></div>`;
   }
   list.innerHTML = html;
+  if (window.lucide) lucide.createIcons();
 }
 // Последовательно догружаем провайдеров (по одному, а не 4 параллельно),
 // чтобы медленный туннель не задыхался от одновременных 179КБ-запросов.
@@ -2056,13 +2069,15 @@ async function mbOpen() {
   await mbRenderList();
   mbRenderDetail();
   mbLoadAll();
+  if (window.lucide) lucide.createIcons();
 }
 function mbClose() {
   $("#modelBrowser").classList.remove("open");
   $("#messages").style.display = "";
   $("#vision").style.display = "";
-    updateEmptyState();
+  updateEmptyState();
   $("#bar").style.display = "";
+  if (window.lucide) lucide.createIcons();
 }
 async function mbSelect(id) {
   mbState.selectedId = id;
@@ -2072,6 +2087,7 @@ async function mbSelect(id) {
   } catch (e) {
     toast("⚠️ " + e, "err");
   }
+  if (window.lucide) lucide.createIcons();
 }
 async function mbPick(id) {
   try {
@@ -2088,6 +2104,7 @@ async function mbPick(id) {
   } catch (e) {
     await showAlert("Ошибка", "⚠️ " + String(e));
   }
+  if (window.lucide) lucide.createIcons();
 }
 async function mbToggleFav(id) {
   const fav = mbIsFav(id);
@@ -2930,6 +2947,7 @@ function openSettings(tab = null) {
     const content = document.querySelector(`.tab-content[data-content="${tab}"]`);
     if (content) content.classList.add("active");
   }
+  if (window.lucide) lucide.createIcons();
 }
 function closeSettings() {
   $("#settings").classList.remove("open");
@@ -2938,6 +2956,7 @@ function closeSettings() {
   $("#vision").style.display = "";
   $("#bar").style.display = "";
   updateEmptyState();
+  if (window.lucide) lucide.createIcons();
 }
 $("#gear").addEventListener("click", () => { vibClick();
   if ($("#settings").classList.contains("open")) closeSettings();
@@ -3323,6 +3342,7 @@ async function runTour() {
     applySpotlight(rect, settingsMode);
     backdrop.classList.add("active");
     tooltip.style.display = "block";
+    if (window.lucide) lucide.createIcons();
   }
 
   function advanceTour() {
