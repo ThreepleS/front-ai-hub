@@ -3185,6 +3185,7 @@ async function runTour() {
 
   let currentStep = 0;
   let settingsOpenedForTour = false;
+  const SETTINGS_TARGETS = new Set(["#settings", "#s_keys", "#s_models", "#s_prompt", "#s_limit", "#s_stats", "#s_theme", "#s_sound", "#s_vibrate", "#s_pwa", "#s_web", "#s_admin", "#s_replay_tour", "#s_export_md", "#s_export_txt"]);
 
   function positionTooltip(rect) {
     const tooltipRect = tooltip.getBoundingClientRect();
@@ -3202,20 +3203,26 @@ async function runTour() {
     tooltip.style.left = left + "px";
   }
 
-  function updateOverlay(rect) {
+  function updateOverlay(rect, settingsMode = false) {
+    if (settingsMode) {
+      overlay.style.clipPath = "";
+      overlay.style.background = "transparent";
+      return;
+    }
     const pad = 8;
     const x = rect.left - pad;
     const y = rect.top - pad;
     const w = rect.width + pad * 2;
     const h = rect.height + pad * 2;
+    overlay.style.background = "rgba(0, 0, 0, 0.75)";
     overlay.style.clipPath = `polygon(0px 0px, 0px 100vh, 100vw 100vh, 100vw 0px, 0px 0px, ${x}px ${y}px, ${x + w}px ${y}px, ${x + w}px ${y + h}px, ${x}px ${y + h}px, ${x}px ${y}px)`;
   }
 
-  function applySpotlight(rect) {
+  function applySpotlight(rect, settingsMode = false) {
     document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
     const target = $(steps[currentStep].target);
     if (target) target.classList.add("tour-spotlight");
-    updateOverlay(rect);
+    updateOverlay(rect, settingsMode);
     positionTooltip(rect);
   }
 
@@ -3233,9 +3240,14 @@ async function runTour() {
       return;
     }
 
+    const isSettingsTarget = SETTINGS_TARGETS.has(step.target) || step.target.startsWith("#s_");
+    const settingsMode = isSettingsTarget && $("#settings").classList.contains("open");
+
     if (step.openSettingsBefore && !settingsOpenedForTour) {
       openSettings("keys");
       settingsOpenedForTour = true;
+      setTimeout(() => showStep(index), 150);
+      return;
     }
 
     titleEl.textContent = step.title;
@@ -3243,7 +3255,8 @@ async function runTour() {
     nextBtn.textContent = index === steps.length - 1 ? "Завершить" : "Далее";
 
     const rect = target.getBoundingClientRect();
-    applySpotlight(rect);
+    console.debug("[tour] step " + index + " target=" + step.target + " title=" + step.title + " rect=" + JSON.stringify({x: Math.round(rect.x), y: Math.round(rect.y), w: Math.round(rect.width), h: Math.round(rect.height)}));
+    applySpotlight(rect, settingsMode);
     backdrop.classList.add("active");
     tooltip.style.display = "block";
   }
