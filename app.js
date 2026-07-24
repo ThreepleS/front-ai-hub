@@ -1188,8 +1188,9 @@ async function auth(devId) {
     setStatus("ok");
 
     if (data.needs_key && !tourActive) {
-      const dialogs = await loadDialogsFromDb().catch(() => []);
-      if (dialogs.length === 0) {
+      const historyEmpty = Array.isArray(data.history) && data.history.length === 0;
+      const seen = localStorage.getItem(TOUR_KEY) === "true";
+      if (historyEmpty && seen) {
         localStorage.removeItem(TOUR_KEY);
         deferredOpenSettings = true;
         await initTour(true);
@@ -2323,9 +2324,11 @@ $("#s_save").addEventListener("click", async () => { vibClick();
     vib_strength: getVibStrength(),
   });
   payload.provider_keys = collectProviderKeys();
+  console.debug("[settings] save payload keys=", Object.keys(payload), "provider_keys=", payload.provider_keys);
   try {
     const res = await ef("settings", payload, 15000);
     const data = await res.json();
+    console.debug("[settings] save response", data);
     if (!data.ok) {
       status.style.color = "#e06b6b";
       status.textContent = data.error || "ошибка";
@@ -2341,6 +2344,7 @@ $("#s_save").addEventListener("click", async () => { vibClick();
   } catch (err) {
     status.style.color = "#e06b6b";
     status.textContent = "⚠️ " + String(err);
+    console.error("[settings] save failed", err);
   }
 });
 
