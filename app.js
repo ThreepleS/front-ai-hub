@@ -1190,9 +1190,11 @@ async function auth(devId) {
     if (data.needs_key && !tourActive) {
       const historyEmpty = Array.isArray(data.history) && data.history.length === 0;
       const seen = localStorage.getItem(TOUR_KEY) === "true";
+      console.debug("[auth] needs_key=" + data.needs_key + " historyEmpty=" + historyEmpty + " seen=" + seen);
       if (historyEmpty && seen) {
         localStorage.removeItem(TOUR_KEY);
         deferredOpenSettings = true;
+        console.debug("[auth] triggering tour for fresh state");
         await initTour(true);
       } else {
         await ensureCurrentDialog();
@@ -1254,6 +1256,7 @@ async function loadKeyInfo() {
   try {
     const res = await ef("keyinfo", {}, 10000);
     const data = await res.json();
+    console.debug("[keyinfo] response", data);
     if (!data.ok) return;
     PROVIDERS.forEach((p) => {
       const k = (data.keys && data.keys[p]) || {};
