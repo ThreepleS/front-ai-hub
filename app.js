@@ -3131,58 +3131,98 @@ async function initTour(force = false) {
 
 async function runTour() {
   const backdrop = $("#tourBackdrop");
+  const overlay = $("#tourOverlay");
   const tooltip = $("#tourTooltip");
   const titleEl = $("#tourTooltipTitle");
   const bodyEl = $("#tourTooltipBody");
   const nextBtn = $("#tourNext");
   const skipBtn = $("#tourSkip");
-  if (!backdrop || !tooltip) return;
+  if (!backdrop || !tooltip || !overlay) return;
 
   const steps = [
     {
       target: "header",
-      title: "Верхняя панель",
-      body: "Главное меню приложения. Здесь можно выбрать модель, открыть список диалогов, начать новый чат, найти что-то в истории или зайти в настройки.",
+      title: "Добро пожаловать в приложение",
+      body: "Это верхняя панель. Здесь можно открыть браузер моделей, перейти к диалогам, начать новый чат, найти что-то в истории или зайти в настройки.",
     },
     {
       target: "#models",
       title: "Браузер моделей",
-      body: "Здесь выбирается модель ИИ. Вверху можно фильтровать по провайдеру: OpenRouter, OpenAI, Gemini, Groq, HuggingFace, Venice AI. Провайдер «Рекомендуемые модели» появится позже. Список моделей автоматически обновляется, если сервер возвращает свежий каталог.",
+      body: "Здесь выбирается модель ИИ. Вверху можно фильтровать по провайдеру: OpenRouter, OpenAI, Gemini, Groq, HuggingFace, Venice AI. Провайдер «Рекомендуемые модели» появится позже. Список моделей автоматически обновляется при каждом открытии.",
     },
     {
       target: "#dialogsBtn",
       title: "Диалоги",
-      body: "Открывает список всех диалогов. Ты можешь переключаться между ними, а также удалять ненужные.",
+      body: "Открывает список всех диалогов. Ты можешь переключаться между ними, возвращаться к старым обсуждениям или удалять ненужные.",
     },
     {
       target: "#newChatBtn",
       title: "Новый чат",
-      body: "Создаёт новый диалог. История переписки сохраняется отдельно для каждого чата.",
+      body: "Создаёт новый пустой диалог. История переписки сохраняется отдельно для каждого чата, поэтому можно вести несколько тем одновременно.",
     },
     {
       target: "#searchBtn",
-      title: "Поиск",
-      body: "Позволяет быстро найти сообщение в текущем диалоге по ключевым словам.",
+      title: "Поиск по истории",
+      body: "Позволяет быстро найти сообщение в текущем диалоге по ключевым словам. Просто введи запрос — приложение само подсветит нужные фрагменты.",
     },
     {
       target: "#bar",
       title: "Ввод сообщения",
-      body: "В этой области можно ввести текст или прикрепить фото, чтобы отправить сообщение модели.",
+      body: "Основная рабочая область. Здесь печатается текст, прикрепляются фото и отправляются запросы модели. Можно писать обычным языком, не нужно команд.",
+    },
+    {
+      target: "#gear",
+      title: "Настройки",
+      body: "Сюда можно попасть в любой момент. Там собрано всё: модель по умолчанию, системный промпт, лимит контекста, тема оформления, звуки и вибрация. Сначала рекомендую зайти во вкладку «Ключи».",
     },
     {
       target: "#settings",
-      title: "Настройки откроются автоматически",
-      body: "Здесь можно настроить всё под себя: выбрать модель по умолчанию, задать системный промпт, изменить лимит контекста и внешний вид. Сначала я покажу основные разделы, а потом мы подробно займёмся ключами.",
+      title: "Настроим приложение вместе",
+      body: "Сейчас я открою настройки и покажу самое главное — где вставить API-ключ, чтобы чат начал работать. Следуй за подсказками.",
       openSettingsBefore: true,
     },
     {
       target: "#s_keys",
       title: "API-ключи",
-      body: "Здесь добавляются ключи для провайдеров. Без ключа чат не сможет отправлять запросы к модели. Выбери провайдера, вставь ключ и нажми «Сохранить» внизу.",
+      body: "Без ключа чат не сможет отправлять запросы к модели. Выбери своего провайдера, вставь ключ и нажми «Сохранить». После этого можно возвращаться в чат.",
     },
   ];
 
   let currentStep = 0;
+  let settingsOpenedForTour = false;
+
+  function positionTooltip(rect) {
+    const tooltipRect = tooltip.getBoundingClientRect();
+    let top = rect.bottom + 12;
+    let left = rect.left + rect.width / 2 - 160;
+
+    if (top + tooltipRect.height > window.innerHeight - 12) {
+      top = rect.top - tooltipRect.height - 12;
+    }
+    if (left < 12) left = 12;
+    if (left + 320 > window.innerWidth) left = window.innerWidth - 332;
+    if (top < 12) top = 12;
+
+    tooltip.style.top = top + "px";
+    tooltip.style.left = left + "px";
+  }
+
+  function updateOverlay(rect) {
+    const pad = 8;
+    const x = rect.left - pad;
+    const y = rect.top - pad;
+    const w = rect.width + pad * 2;
+    const h = rect.height + pad * 2;
+    overlay.style.clipPath = `polygon(0px 0px, 0px 100vh, 100vw 100vh, 100vw 0px, 0px 0px, ${x}px ${y}px, ${x}px ${y + h}px, ${x + w}px ${y + h}px, ${x + w}px ${y}px, ${x}px ${y}px)`;
+  }
+
+  function applySpotlight(rect) {
+    document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
+    const target = $(steps[currentStep].target);
+    if (target) target.classList.add("tour-spotlight");
+    updateOverlay(rect);
+    positionTooltip(rect);
+  }
 
   function showStep(index) {
     if (index >= steps.length) {
@@ -3196,29 +3236,17 @@ async function runTour() {
       return;
     }
 
-    if (step.openSettingsBefore) {
+    if (step.openSettingsBefore && !settingsOpenedForTour) {
       openSettings("keys");
+      settingsOpenedForTour = true;
     }
 
-    document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
-
-    target.classList.add("tour-spotlight");
     titleEl.textContent = step.title;
     bodyEl.textContent = step.body;
     nextBtn.textContent = index === steps.length - 1 ? "Завершить" : "Далее";
 
     const rect = target.getBoundingClientRect();
-    let top = rect.bottom + 12;
-    let left = rect.left + rect.width / 2 - 160;
-
-    if (top + 160 > window.innerHeight) {
-      top = rect.top - 160;
-    }
-    if (left < 12) left = 12;
-    if (left + 320 > window.innerWidth) left = window.width - 332;
-
-    tooltip.style.top = top + "px";
-    tooltip.style.left = left + "px";
+    applySpotlight(rect);
     backdrop.classList.add("active");
     tooltip.style.display = "block";
     currentStep = index;
@@ -3228,12 +3256,16 @@ async function runTour() {
     tourActive = false;
     backdrop.classList.remove("active");
     tooltip.style.display = "none";
+    overlay.style.clipPath = "";
     document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
     nextBtn.removeEventListener("click", onNext);
     skipBtn.removeEventListener("click", onSkip);
     showQueuedAuthErrorIfAny();
     openDeferredSettingsIfAny();
-    if ($("#settings").classList.contains("open")) closeSettings();
+    if (settingsOpenedForTour && $("#settings").classList.contains("open")) {
+      closeSettings();
+      settingsOpenedForTour = false;
+    }
   }
 
   const onNext = () => showStep(currentStep + 1);
@@ -3241,6 +3273,12 @@ async function runTour() {
 
   nextBtn.addEventListener("click", onNext);
   skipBtn.addEventListener("click", onSkip);
+
+  window.addEventListener("resize", () => {
+    if (!tourActive) return;
+    const target = $(steps[currentStep]?.target || "");
+    if (target) applySpotlight(target.getBoundingClientRect());
+  });
 
   showStep(0);
 }
