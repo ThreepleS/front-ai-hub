@@ -2344,6 +2344,26 @@ $("#s_save").addEventListener("click", async () => { vibClick();
     });
     await loadKeyInfo();
     log("модель: " + data.settings.selected_model);
+    if (tourActive && localStorage.getItem(TOUR_KEY) === "true") {
+      const congrats = $("#tourCongrats");
+      if (congrats) {
+        congrats.classList.add("open");
+        const ok = $("#tourCongratsOk");
+        const close = () => {
+          congrats.classList.remove("open");
+          if (ok) ok.removeEventListener("click", onOk);
+          const bd = congrats.querySelector(".modal-backdrop");
+          if (bd) bd.removeEventListener("click", onOk);
+          congrats.querySelectorAll("[data-close]").forEach((b) => b.removeEventListener("click", onOk));
+          closeSettings();
+          setTimeout(() => initTour(true), 120);
+        };
+        const onOk = () => close();
+        if (ok) ok.addEventListener("click", onOk);
+        if (bd) bd.addEventListener("click", onOk);
+        congrats.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", onOk));
+      }
+    }
   } catch (err) {
     status.style.color = "#e06b6b";
     status.textContent = "⚠️ " + String(err);
@@ -3193,8 +3213,33 @@ async function runTour() {
     {
       target: "#s_keys",
       title: "API-ключи",
-      body: "Без ключа чат не сможет отправлять запросы к модели. Выбери своего провайдера, вставь ключ и нажми «Сохранить». После этого можно возвращаться в чат.",
+      body: "Без ключа чат не сможет отправлять запросы к модели. Выбери своего провайдера, вставь ключ и нажми «Сохранить». После этого я покажу, что делать дальше.",
       settingsStep: true,
+    },
+    {
+      target: "#models",
+      title: "Браузер моделей",
+      body: "Сюда можно попасть из верхней панели. Здесь можно переключать провайдеров, смотреть доступные модели, отмечать избранные и запускать пинг до моделей, чтобы понять, какая быстрее всего отвечает. Сначала выбери провайдера, затем модель и вернись в чат.",
+    },
+    {
+      target: "#mb_filter",
+      title: "Фильтр провайдеров",
+      body: "Используй этот фильтр, чтобы быстро сузить список моделей по провайдеру: OpenRouter, OpenAI, Gemini, Groq, HuggingFace, Venice AI или Favorites. Провайдер «Рекомендуемые модели» появится позже.",
+    },
+    {
+      target: "#mb_list",
+      title: "Список моделей",
+      body: "Здесь отображаются все модели выбранного провайдера. Жми на модель, чтобы выбрать её для текущего диалога. Рядом можно добавить звезду — тогда модель попадёт в быстрый доступ во вкладке «Избранное».",
+    },
+    {
+      target: "#mb_detail",
+      title: "Карточка модели",
+      body: "При выборе модели открывается её описание: контекст, скорость, версия, pricing и badge-метки. Здесь можно посмотреть характеристики перед запуском и вернуться назад.",
+    },
+    {
+      target: "#mb_close",
+      title: "Закрыть браузер моделей",
+      body: "Когда модель выбрана, закрой браузер моделей и возвращайся в чат. После этого можно отправлять сообщения — они пойдут на выбранную модель.",
     },
   ];
 
