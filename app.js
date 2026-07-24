@@ -495,14 +495,14 @@ const MATH_SYM = {
   angle: "∠",
   perp: "⊥",
   parallel: "∥",
-  rightarrow: "→",
-  leftarrow: "←",
-  Rightarrow: "⇒",
-  Leftarrow: "⇐",
-  leftrightarrow: "↔",
-  Leftrightarrow: "⇔",
-  to: "→",
-  mapsto: "↦",
+  rightarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-right'/></svg>",
+  leftarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-left'/></svg>",
+  Rightarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-right'/></svg>",
+  Leftarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-left'/></svg>",
+  leftrightarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-left-right'/></svg>",
+  Leftrightarrow: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-left-right'/></svg>",
+  to: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-right'/></svg>",
+  mapsto: "<svg class='icon' style=\"width:14px;height:14px\"><use href='#icon-right'/></svg>",
   dots: "…",
   ldots: "…",
   cdots: "⋯",
@@ -1261,7 +1261,7 @@ async function loadKeyInfo() {
     PROVIDERS.forEach((p) => {
       const k = (data.keys && data.keys[p]) || {};
       const st = $("#key_status_" + p);
-      if (st) st.textContent = k.has ? "✅ сохранён" : "— нет";
+      if (st) st.textContent = k.has ? "<svg class='icon'><use href='#icon-check'/></svg> сохранён" : "— нет";
     });
   } catch {}
 }
@@ -1916,7 +1916,7 @@ function mbRenderDetail() {
       ].join("");
   const caps = [
     v.vision ? `<span class="badge prov">👁 Vision</span>` : "",
-    v.reasoning ? `<span class="badge prov">🧠 Reasoning</span>` : "",
+    v.reasoning ? `<span class="badge prov"><svg class="icon"><use href="#icon-brain"/></svg> Reasoning</span>` : "",
     v.function_calling ? `<span class="badge prov">🔧 Functions</span>` : "",
   ].join("");
   const grid =
@@ -1987,7 +1987,7 @@ async function mbRenderList() {
     const isFree = g.free === true;
     const pingBtn =
       (g.key === "openrouter" || g.key === "gemini") && count > 0
-        ? `<button class="ping-btn" data-ping="${g.key}" ${mbState.pinging[g.key] ? "disabled" : ""}>🔄 Обновить</button>`
+        ? `<button class="ping-btn" data-ping="${g.key}" ${mbState.pinging[g.key] ? "disabled" : ""}><svg class="icon"><use href="#icon-replay"/></svg> Обновить</button>`
         : "";
     const pingTime =
       isFree && mbState.lastPing[g.key]
@@ -2508,7 +2508,7 @@ async function tplRender() {
       : "";
     const resetBtn =
       t.recommended && t.originalText && t.text !== t.originalText
-        ? `<button class="btn ghost sm tpl-reset" data-id="${esc(t.id)}" title="Сбросить">↩</button>`
+        ? `<button class="btn ghost sm tpl-reset" data-id="${esc(t.id)}" title="Сбросить"><svg class="icon"><use href="#icon-replay"/></svg></button>`
         : "";
     card.innerHTML = `
           <div class="tpl-info" data-id="${esc(t.id)}">
@@ -2517,8 +2517,8 @@ async function tplRender() {
           </div>
           <div class="tpl-actions">
             ${resetBtn}
-            ${t.recommended ? "" : `<button class="btn ghost sm tpl-edit" data-id="${esc(t.id)}" title="Изменить">✎</button>`}
-            <button class="btn ghost sm tpl-del" data-id="${esc(t.id)}" title="Удалить">✕</button>
+            ${t.recommended ? "" : `<button class="btn ghost sm tpl-edit" data-id="${esc(t.id)}" title="Изменить"><svg class="icon"><use href="#icon-edit"/></svg></button>`}
+            <button class="btn ghost sm tpl-del" data-id="${esc(t.id)}" title="Удалить"><svg class="icon"><use href="#icon-close"/></svg></button>
           </div>
         `;
     wrap.appendChild(card);
