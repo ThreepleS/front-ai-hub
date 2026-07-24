@@ -3264,9 +3264,12 @@ async function runTour() {
     document.querySelectorAll(".tour-spotlight").forEach((el) => el.classList.remove("tour-spotlight"));
     nextBtn.removeEventListener("click", onNext);
     skipBtn.removeEventListener("click", onSkip);
+    document.removeEventListener("click", tourClickHandler);
+    window.removeEventListener("resize", tourResizeHandler);
     showQueuedAuthErrorIfAny();
     openDeferredSettingsIfAny();
     nextBtn.style.display = "";
+    currentStep = 0;
   }
 
   const onNext = () => showStep(currentStep + 1);
@@ -3287,11 +3290,12 @@ async function runTour() {
   };
   document.addEventListener("click", tourClickHandler);
 
-  window.addEventListener("resize", () => {
+  const tourResizeHandler = () => {
     if (!tourActive) return;
     const target = $(steps[currentStep]?.target || "");
     if (target) applySpotlight(target.getBoundingClientRect());
-  });
+  };
+  window.addEventListener("resize", tourResizeHandler);
 
   showStep(0);
 }
