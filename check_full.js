@@ -976,7 +976,8 @@ function addCodeCopy(root) {
     wrap.appendChild(pre);
     const btn = document.createElement("button");
     btn.className = "code-copy";
-    btn.textContent = "<i data-lucide='clipboard' class='lucide'></i>";
+    btn.innerHTML = "<i data-lucide='clipboard' class='lucide'></i>";
+    if (window.lucide) lucide.createIcons();
     btn.title = "Копировать";
     btn.addEventListener("click", () => {
       const code = pre.querySelector("code");
@@ -984,8 +985,8 @@ function addCodeCopy(root) {
       navigator.clipboard
         .writeText(txt)
         .then(() => {
-          btn.textContent = "<i data-lucide='check' class='lucide'></i>";
-          setTimeout(() => (btn.textContent = "<i data-lucide='clipboard' class='lucide'></i>"), 1200);
+      btn.innerHTML = "<i data-lucide='check' class='lucide'></i>";
+      setTimeout(() => (btn.innerHTML = "<i data-lucide='clipboard' class='lucide'></i>"), 1200);
         })
         .catch(() => {});
     });
@@ -1237,7 +1238,7 @@ async function loadKeyInfo() {
     PROVIDERS.forEach((p) => {
       const k = (data.keys && data.keys[p]) || {};
       const st = $("#key_status_" + p);
-      if (st) st.textContent = k.has ? "<i data-lucide='check' class='lucide'></i> сохранён" : "— нет";
+      if (st) st.innerHTML = k.has ? "<i data-lucide='check' class='lucide'></i> сохранён" : "— нет";
     });
   } catch {}
 }
@@ -1295,7 +1296,7 @@ function showAttach() {
   img.src = pendingImage.dataUrl;
   const rm = document.createElement("button");
   rm.className = "attach-rm";
-  rm.textContent = "<i data-lucide='x' class='lucide'></i>";
+  rm.innerHTML = "<i data-lucide='x' class='lucide'></i>";
   rm.onclick = () => {
     pendingImage = null;
     showAttach();
@@ -2312,14 +2313,16 @@ $("#s_save").addEventListener("click", async () => { vibClick();
       return;
     }
     status.style.color = "#6fcf7f";
-    status.textContent = "сохранено <i data-lucide='check' class='lucide'></i>";
+    status.innerHTML = "сохранено <i data-lucide='check' class='lucide'></i>";
+    if (window.lucide) lucide.createIcons();
     PROVIDERS.forEach((p) => {
       $("#s_key_" + p).value = "";
     });
     log("модель: " + data.settings.selected_model);
   } catch (err) {
     status.style.color = "#e06b6b";
-    status.textContent = "<i data-lucide='alert-triangle' class='lucide'></i> " + String(err);
+      status.innerHTML = "<i data-lucide='alert-triangle' class='lucide'></i> " + String(err);
+      if (window.lucide) lucide.createIcons();
   }
 });
 

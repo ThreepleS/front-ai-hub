@@ -978,7 +978,8 @@ function addCodeCopy(root) {
     wrap.appendChild(pre);
     const btn = document.createElement("button");
     btn.className = "code-copy";
-    btn.textContent = "<i data-lucide='clipboard-list' class='icon'></i>";
+    btn.innerHTML = "<i data-lucide='clipboard-list' class='icon'></i>";
+    if (window.lucide) lucide.createIcons();
     btn.title = "Копировать";
     btn.addEventListener("click", () => {
       const code = pre.querySelector("code");
@@ -986,8 +987,8 @@ function addCodeCopy(root) {
       navigator.clipboard
         .writeText(txt)
         .then(() => {
-    btn.textContent = "<i data-lucide='check' class='icon'></i>";
-    setTimeout(() => (btn.textContent = "<i data-lucide='clipboard-list' class='icon'></i>"), 1200);
+      btn.innerHTML = "<i data-lucide='check' class='icon'></i>";
+      setTimeout(() => (btn.innerHTML = "<i data-lucide='clipboard-list' class='icon'></i>"), 1200);
         })
         .catch(() => {});
     });
@@ -1322,7 +1323,7 @@ function showAttach() {
   img.src = pendingImage.dataUrl;
   const rm = document.createElement("button");
   rm.className = "attach-rm";
-      rm.textContent = "<i data-lucide='x' class='icon'></i>";
+      rm.innerHTML = "<i data-lucide='x' class='icon'></i>";
   rm.onclick = () => {
     pendingImage = null;
     showAttach();
@@ -2345,7 +2346,8 @@ $("#s_save").addEventListener("click", async () => { vibClick();
       return;
     }
     status.style.color = "#6fcf7f";
-    status.textContent = "сохранено <i data-lucide='check' class='lucide'></i>";
+    status.innerHTML = "сохранено <i data-lucide='check' class='lucide'></i>";
+    if (window.lucide) lucide.createIcons();
     PROVIDERS.forEach((p) => {
       $("#s_key_" + p).value = "";
     });
@@ -2363,7 +2365,10 @@ $("#s_save").addEventListener("click", async () => { vibClick();
           if (bd) bd.removeEventListener("click", onOk);
           congrats.querySelectorAll("[data-close]").forEach((b) => b.removeEventListener("click", onOk));
           closeSettings();
-          setTimeout(() => initTour(true), 120);
+          setTimeout(async () => {
+            await mbOpen();
+            runTour(9);
+          }, 120);
         };
         const onOk = () => close();
         if (ok) ok.addEventListener("click", onOk);
@@ -2373,7 +2378,8 @@ $("#s_save").addEventListener("click", async () => { vibClick();
     }
   } catch (err) {
     status.style.color = "#e06b6b";
-    status.textContent = "<i data-lucide='alert-triangle' class='lucide'></i> " + String(err);
+      status.innerHTML = "<i data-lucide='alert-triangle' class='lucide'></i> " + String(err);
+      if (window.lucide) lucide.createIcons();
     console.error("[settings] save failed", err);
   }
 });
@@ -3173,7 +3179,7 @@ async function initTour(force = false) {
   welcome.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", onNo));
 }
 
-async function runTour() {
+async function runTour(startStep = 0) {
   const backdrop = $("#tourBackdrop");
   const overlay = $("#tourOverlay");
   const tooltip = $("#tourTooltip");
@@ -3252,7 +3258,7 @@ async function runTour() {
     },
   ];
 
-  let currentStep = 0;
+  let currentStep = startStep;
   let settingsOpenedForTour = false;
   const SETTINGS_TARGETS = new Set(["#settings", "#s_keys", "#s_models", "#s_prompt", "#s_limit", "#s_stats", "#s_theme", "#s_sound", "#s_vibrate", "#s_pwa", "#s_web", "#s_admin", "#s_replay_tour", "#s_export_md", "#s_export_txt"]);
 
