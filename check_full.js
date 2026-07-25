@@ -3040,11 +3040,6 @@ async function saveLocalHistory() {
 
 if (window.lucide) {
   lucide.createIcons();
-  new MutationObserver(() => {
-    if (document.querySelector('[data-lucide]')) {
-      lucide.createIcons();
-    }
-  }).observe(document.body, { subtree: true, childList: true, attributes: true });
 }
 
  

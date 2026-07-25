@@ -1489,16 +1489,7 @@ ctxMenu.addEventListener("click", (e) => {
   } else if (act === "delete") {
     ctxMsgEl.remove();
     updateEmptyState();
-     
-
-if (window.lucide) {
-  lucide.createIcons();
-  new MutationObserver(() => {
-    if (document.querySelector('[data-lucide]')) {
-      lucide.createIcons();
-    }
-  }).observe(document.body, { subtree: true, childList: true, attributes: true });
-}    toast("Удалено", "ok");
+    toast("Удалено", "ok");
   }
   hideCtx();
 });
