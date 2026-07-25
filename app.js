@@ -1192,7 +1192,7 @@ async function auth(devId) {
     setStatus("ok");
 
     if (data.needs_key && !tourActive) {
-      const historyEmpty = Array.isArray(data.history) && data.history.length === 0;
+      const historyEmpty = !Array.isArray(data.history) || data.history.length === 0;
       const seen = localStorage.getItem(TOUR_KEY) === "true";
       console.debug("[auth] needs_key=" + data.needs_key + " historyEmpty=" + historyEmpty + " seen=" + seen);
       if (historyEmpty || !seen) {
@@ -2365,10 +2365,7 @@ $("#s_save").addEventListener("click", async () => { vibClick();
           if (bd) bd.removeEventListener("click", onOk);
           congrats.querySelectorAll("[data-close]").forEach((b) => b.removeEventListener("click", onOk));
           closeSettings();
-          setTimeout(async () => {
-            await mbOpen();
-            runTour(9);
-          }, 120);
+          runTour(9);
         };
         const onOk = () => close();
         if (ok) ok.addEventListener("click", onOk);
@@ -3362,8 +3359,6 @@ async function runTour(startStep = 0) {
     showQueuedAuthErrorIfAny();
     openDeferredSettingsIfAny();
     nextBtn.style.display = "";
-    currentStep = 0;
-    settingsOpenedForTour = false;
   }
 
   const onNext = () => {
@@ -3371,6 +3366,12 @@ async function runTour(startStep = 0) {
     if (step && step.target === "#gear" && !settingsOpenedForTour) {
       openSettings("keys");
       settingsOpenedForTour = true;
+    }
+    if (step && step.target === "#models" && currentStep + 1 < steps.length) {
+      const next = steps[currentStep + 1];
+      if (next && /^#mb_/.test(next.target)) {
+        mbOpen();
+      }
     }
     showStep(currentStep + 1);
   };
