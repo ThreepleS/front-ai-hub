@@ -2535,7 +2535,7 @@ if (keyModeToggle) {
 
 // --- Google OAuth --------------------------------------------------------
 function loadGoogleScript() {
-  return new Promise<void>((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     if (window.google && google.accounts && google.accounts.id) {
       resolve();
       return;
@@ -2565,7 +2565,7 @@ async function initGoogleAuth() {
     await loadGoogleScript();
     google.accounts.id.initialize({
       client_id: GOOGLE_CLIENT_ID,
-      callback: async (response: any) => {
+      callback: async (response) => {
         if (!response.credential) return;
         try {
           const data = await ef("google-auth", { id_token: response.credential }, 15000);
@@ -2578,8 +2578,8 @@ async function initGoogleAuth() {
           renderKeySection(keyMode);
           await auth("");
           await showAlert("Успех", "Вы вошли через Google. Режим: авто.");
-        } catch (e: any) {
-          await showAlert("Ошибка входа", String(e?.message || e));
+        } catch (e) {
+          await showAlert("Ошибка входа", String(e && e.message ? e.message : e));
         }
       },
     });
@@ -2616,7 +2616,7 @@ if ($("#google_signin_fallback")) {
       renderKeySection(keyMode);
       await auth("");
       await showAlert("Успех", "Вы вошли через Google. Режим: авто.");
-    } catch (e: any) {
+    } catch (e) {
       await showAlert("Ошибка входа", String(e?.message || e));
     }
   });
@@ -3032,16 +3032,16 @@ if (googleBtn) {
       const res = await new Promise((resolve, reject) => {
         google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
-          callback: (response: any) => resolve(response),
-          error_callback: (err: any) => reject(err),
+          callback: (response) => resolve(response),
+          error_callback: (err) => reject(err),
         });
-        google.accounts.id.prompt((notification: any) => {
+        google.accounts.id.prompt((notification) => {
           if (notification.isNotDisplayed()) {
             reject(new Error("Google prompt не показан"));
           }
         });
       });
-      const idToken = (res as any).credential;
+      const idToken = res.credential;
       if (!idToken) throw new Error("Отсутствует credential");
       const data = await ef("google-auth", { id_token: idToken }, 15000);
       if (!data.ok) throw new Error(data.error || "Ошибка авторизации");
@@ -3052,7 +3052,7 @@ if (googleBtn) {
       updateModeLabel();
       renderKeySection(keyMode);
       await auth("");
-    } catch (e: any) {
+    } catch (e) {
       await showAlert("Ошибка входа", String(e?.message || e));
     }
   });
