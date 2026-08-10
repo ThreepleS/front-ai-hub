@@ -83,6 +83,7 @@ const PROVIDER_LABELS = {
 let currentUserId = "";
 let currentModelId = "";
 let isAdmin = false;
+let needsKey = false;
 let pendingImage = null;
 let lastUserMessage = "";
 
@@ -940,11 +941,39 @@ function updateEmptyState() {
   const isEmpty = box.querySelectorAll(".msg").length === 0;
   if (isEmpty) {
     if (!box.querySelector(".empty-state")) {
-      box.innerHTML = `<div class="empty-state" style="margin: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><div><b style="font-size: 16px; color: var(--text);">Начни диалог</b><br/>напиши что-нибудь внизу</div></div>`;
+      if (needsKey) {
+        box.innerHTML = `<div class="empty-state" style="margin: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: var(--muted); padding: 20px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg><div><b style="font-size: 16px; color: var(--text);">Добавьте API-ключ</b><br/>чтобы начать общаться с ИИ.<br/><button id="es_open_settings" class="btn primary sm" style="margin-top:12px"><i data-lucide="key" class="icon"></i> Открыть настройки</button></div></div>`;
+        setTimeout(() => {
+          const btn = $("#es_open_settings");
+          if (btn) {
+            btn.addEventListener("click", () => openSettings("keys"));
+            if (window.lucide) lucide.createIcons();
+          }
+        }, 0);
+      } else {
+        box.innerHTML = `<div class="empty-state" style="margin: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; color: var(--muted);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><div><b style="font-size: 16px; color: var(--text);">Начни диалог</b><br/>напиши что-нибудь внизу</div></div>`;
+      }
     }
   } else {
     const es = box.querySelector(".empty-state");
     if (es) es.remove();
+  }
+}
+
+function updateInputState() {
+  const bar = $("#bar");
+  const input = $("#input");
+  const sendBtn = bar?.querySelector(".send-btn");
+  const imgBtn = $("#imgbtn");
+  if (!bar || !input) return;
+  if (needsKey) {
+    bar.style.opacity = "0.5";
+    bar.style.pointerEvents = "none";
+    input.placeholder = "Сначала добавьте API-ключ в настройках…";
+  } else {
+    bar.style.opacity = "";
+    bar.style.pointerEvents = "";
+    input.placeholder = "Сообщение или фото…";
   }
 }
 function setStatus(state) {
@@ -1191,9 +1220,11 @@ async function auth(devId) {
     }
     currentUserId = data.user_id;
     isAdmin = !!data.is_admin;
+    needsKey = !!data.needs_key;
     if (isAdmin) $("#s_admin").style.display = "inline-block";
     fillSettings(data.settings);
     setStatus("ok");
+    updateInputState();
 
     if (data.needs_key && !tourActive) {
       const historyEmpty = !Array.isArray(data.history) || data.history.length === 0;
@@ -1533,6 +1564,10 @@ $("#lb_reply").addEventListener("click", async () => {
 // --- Chat -------------------------------------------------------------
 $("#bar").addEventListener("submit", async (e) => { vibClick();
   e.preventDefault();
+  if (needsKey) {
+    openSettings("keys");
+    return;
+  }
   const input = $("#input");
   const text = input.value.trim();
   if (!text && !pendingImage) return;
@@ -1643,7 +1678,16 @@ $("#bar").addEventListener("submit", async (e) => { vibClick();
 
 // --- Model Browser --------------------------------------------------
 const MB_PROVIDERS = ["openrouter", "paid", "gemini", "venice"];
+const RECOMMENDED_MODELS = [
+  "google/gemini-2.0-flash-exp:free",
+  "meta-llama/llama-4-maverick:free",
+  "mistralai/mistral-small-24b-instruct-2501:free",
+  "qwen/qwen-2.5-72b-instruct:free",
+  "huggingfaceh4/zephyr-7b-beta:free",
+];
+
 const MB_GROUPS = [
+  { key: "recommended", label: "🚀 Рекомендуемые" },
   { key: "favorite", label: "⭐ Избранное" },
   { key: "openrouter", label: "OpenRouter FREE", free: true },
   { key: "paid", label: "OpenRouter" },
@@ -1653,6 +1697,7 @@ const MB_GROUPS = [
 const mbState = {
   favorites: [],
   cache: {
+    recommended: [],
     openrouter: null,
     paid: null,
     gemini: null,
@@ -1665,10 +1710,11 @@ const mbState = {
   selectedId: null,
   search: "",
   collapsed: {
-    favorite: true,
-    openrouter: true,
+    recommended: false,
+    favorite: false,
+    openrouter: false,
     paid: true,
-    gemini: true,
+    gemini: false,
     venice: true,
   },
 };
@@ -1961,6 +2007,11 @@ function mbRenderDetail() {
       `;
 }
 function mbModelsForGroup(gkey) {
+  if (gkey === "recommended") {
+    const all = mbState.cache.openrouter || [];
+    const recSet = new Set(RECOMMENDED_MODELS.map((id) => id.toLowerCase()));
+    return all.filter((m) => recSet.has((m.model_id || m.id || "").toLowerCase()));
+  }
   const arr = gkey === "favorite" ? mbState.favorites : mbState.cache[gkey];
   if (!Array.isArray(arr)) return arr;
   const q = mbState.search.trim().toLowerCase();
@@ -2042,7 +2093,7 @@ async function mbRenderList() {
 // чтобы медленный туннель не задыхался от одновременных 179КБ-запросов.
 async function mbLoadAll() {
   for (const g of MB_GROUPS) {
-    if (g.key === "favorite") continue;
+    if (g.key === "favorite" || g.key === "recommended") continue;
     if (mbState.cache[g.key] === null) {
       await mbLoadProvider(g.key);
       mbRenderList();
@@ -2064,6 +2115,17 @@ async function mbOpen() {
   mbRenderDetail();
   mbLoadAll();
   if (window.lucide) lucide.createIcons();
+  if (!mbState.selectedId) {
+    const tryPick = () => {
+      const first = document.querySelector(".mb-item");
+      if (first && first.dataset.id) {
+        mbPick(first.dataset.id);
+      } else {
+        setTimeout(tryPick, 400);
+      }
+    };
+    setTimeout(tryPick, 600);
+  }
 }
 function mbClose() {
   $("#modelBrowser").classList.remove("open");
@@ -2356,6 +2418,13 @@ $("#s_save").addEventListener("click", async () => { vibClick();
       $("#s_key_" + p).value = "";
     });
     await loadKeyInfo();
+    needsKey = false;
+    updateEmptyState();
+    updateInputState();
+    setTimeout(() => {
+      closeSettings();
+      mbOpen();
+    }, 800);
     log("модель: " + data.settings.selected_model);
     if (tourActive && localStorage.getItem(TOUR_KEY) === "true") {
       const congrats = $("#tourCongrats");
