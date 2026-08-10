@@ -57,6 +57,10 @@ async function ef(name, body, ms = 20000) {
     });
     log("ef " + name + " status=" + response.status + " ok=" + response.ok);
     console.debug("[ef]", name, "status", response.status, response.ok);
+    if (!response.ok) {
+      const txt = await response.text().catch(() => "");
+      console.error("[ef]", name, "bad status", response.status, txt.slice(0, 500));
+    }
     return response;
   } catch (e) {
     const msg = e && e.message ? e.message : String(e);
@@ -2364,8 +2368,8 @@ $("#s_save").addEventListener("click", async () => { vibClick();
           const bd = congrats.querySelector(".modal-backdrop");
           if (bd) bd.removeEventListener("click", onOk);
           congrats.querySelectorAll("[data-close]").forEach((b) => b.removeEventListener("click", onOk));
-          closeSettings();
-          runTour(9);
+           closeSettings();
+           runTour(8);
         };
         const onOk = () => close();
         if (ok) ok.addEventListener("click", onOk);
@@ -3367,13 +3371,18 @@ async function runTour(startStep = 0) {
       openSettings("keys");
       settingsOpenedForTour = true;
     }
-    if (step && step.target === "#models" && currentStep + 1 < steps.length) {
-      const next = steps[currentStep + 1];
-      if (next && /^#mb_/.test(next.target)) {
+    const nextIndex = currentStep + 1;
+    if (nextIndex < steps.length) {
+      const next = steps[nextIndex];
+      const isLeavingSettings = (step.target === "#settings" || step.target.startsWith("#s_")) && !(next.target === "#settings" || next.target.startsWith("#s_"));
+      if (isLeavingSettings) {
+        closeSettings();
+      }
+      if (next && /^#mb_/.test(next.target) && step.target === "#models") {
         mbOpen();
       }
     }
-    showStep(currentStep + 1);
+    showStep(nextIndex);
   };
   const onSkip = () => closeTour();
 

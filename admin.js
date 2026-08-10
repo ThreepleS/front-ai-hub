@@ -111,14 +111,19 @@ async function boot() {
 boot();
 
 async function loadAll() {
-  const [s, u, w] = await Promise.all([
+  const [s, u, w, ws] = await Promise.all([
     pjson("summary"),
     pjson("users"),
     pjson("whitelist", { sub_action: "list" }).catch(() => ({ ok: false })),
+    pjson("whitelist", { sub_action: "setting" }).catch(() => ({ ok: false })),
   ]);
   if (s.ok) renderSummary(s);
   if (u.ok) renderUsers(u.users);
   if (w.ok) renderWhitelist(w.whitelist);
+  if (ws.ok) {
+    const toggle = $("#wl_toggle");
+    if (toggle) toggle.checked = ws.whitelist_enabled !== false;
+  }
 }
 
 function renderSummary(s) {
@@ -283,6 +288,11 @@ async function wlRemove(uid) {
   const confirmed = await with2FA("whitelist", { sub_action: "remove", user_id: uid });
   flash(confirmed.ok ? confirmed.message : confirmed.error || "ошибка");
   if (confirmed.ok) loadAll();
+}
+async function wlToggle(checked) {
+  const d = await pjson("whitelist", { sub_action: "toggle", enabled: checked });
+  flash(d.ok ? (checked ? "Белый список включён" : "Белый список выключен") : d.error || "ошибка");
+  if (d.ok) loadAll();
 }
 async function wlNote(uid) {
   const note = prompt("Новая пометка:");

@@ -102,7 +102,12 @@
         <div class="section">
           <div class="section-head">
             <div class="section-title">Белый список</div>
+            <label class="switch">
+              <input type="checkbox" id="wl_toggle" checked onchange="wlToggle(this.checked)">
+              <span class="slider"></span>
+            </label>
           </div>
+          <p class="muted" style="margin-top:4px;font-size:12px">При включённом белом списке доступ есть только у добавленных пользователей. При выключенном — регистрируется любой, кто прошёл проверку Telegram.</p>
           <div class="row">
             <input id="wl_id" type="text" placeholder="Telegram ID" />
             <select id="wl_type">
