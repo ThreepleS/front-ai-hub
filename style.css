@@ -1347,6 +1347,42 @@ textarea {
   background: rgba(255, 180, 84, 0.16);
   color: var(--amber);
 }
+.pkrow.auto .pkstatus {
+  color: var(--accent);
+  font-weight: 600;
+}
+.pkrow.auto input {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.pkrow.manual-only input {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.pkrow.manual-only .pkstatus {
+  color: var(--muted);
+  font-size: 10px;
+}
+.pk-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--glass);
+  border: 1px solid var(--stroke);
+  color: var(--muted);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+.pk-badge.auto-badge {
+  background: rgba(79, 140, 255, 0.16);
+  color: #9fc6ff;
+  border-color: rgba(79, 140, 255, 0.3);
+}
+.pk-badge.manual-badge {
+  background: rgba(255, 180, 84, 0.16);
+  color: var(--amber);
+  border-color: rgba(255, 180, 84, 0.3);
+}
 .mb-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

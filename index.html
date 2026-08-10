@@ -298,23 +298,30 @@
             </div>
           </div>
 
-          <div class="tab-content" data-content="keys">
-            <div class="settings-card">
-              <div class="settings-card-head">
-                <div>
-                  <div class="section-title">API-ключи провайдеров</div>
-                  <div class="settings-card-desc">
-                    Ключи хранятся только в вашем аккаунте. Каждый провайдер
-                    отдельно.
-                  </div>
-                </div>
-              </div>
-              <div id="s_keys" class="provkeys"></div>
-              <a id="s_keys_help" class="btn ghost sm" style="margin-top:8px" href="https://cat-penguin-ac7.notion.site/API-3a753a5bca1a808bb9b6e2f4be78d865?source=copy_link" target="_blank" rel="noopener noreferrer">
-                <i data-lucide="file-text" class="icon"></i> Где взять ключ?
-              </a>
-            </div>
-          </div>
+           <div class="tab-content" data-content="keys">
+             <div class="settings-card">
+               <div class="settings-card-head" style="flex-wrap: wrap; gap: 10px;">
+                 <div style="flex: 1; min-width: 200px;">
+                   <div class="section-title">API-ключи провайдеров</div>
+                   <div class="settings-card-desc">
+                     Ключи хранятся только в вашем аккаунте. Каждый провайдер
+                     отдельно.
+                   </div>
+                 </div>
+                 <div style="display: flex; align-items: center; gap: 10px;">
+                   <span id="mode_label" style="font-size: 13px; color: var(--muted); white-space: nowrap;">Ручной режим</span>
+                   <label class="custom-toggle">
+                     <input type="checkbox" id="s_key_mode" />
+                     <div class="toggle-slider"></div>
+                   </label>
+                 </div>
+               </div>
+               <div id="s_keys" class="provkeys"></div>
+               <a id="s_keys_help" class="btn ghost sm" style="margin-top:8px" href="https://cat-penguin-ac7.notion.site/API-3a753a5bca1a808bb9b6e2f4be78d865?source=copy_link" target="_blank" rel="noopener noreferrer">
+                 <i data-lucide="file-text" class="icon"></i> Где взять ключ?
+               </a>
+             </div>
+           </div>
 
           <div class="tab-content" data-content="notify">
             <div class="settings-card">

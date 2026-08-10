@@ -80,6 +80,7 @@ const PROVIDER_LABELS = {
   venice: "Venice AI",
 };
 
+let keyMode = "manual";
 let currentUserId = "";
 let currentModelId = "";
 let isAdmin = false;
@@ -1164,6 +1165,13 @@ function fillSettings(s) {
     } catch {}
     applyTheme(theme);
   }
+  keyMode = s.key_mode || "manual";
+  const modeToggle = $("#s_key_mode");
+  if (modeToggle) {
+    modeToggle.checked = keyMode === "auto";
+    updateModeLabel();
+  }
+  renderKeySection(keyMode);
   const sound = $("#s_sound");
   const vib = $("#s_vibrate");
   try {
@@ -1262,31 +1270,71 @@ async function auth(devId) {
 
 // --- Per-provider keys ------------------------------------------------
 const PROVIDERS = ["openrouter", "gemini", "venice"];
-function buildKeyRows() {
+const AUTO_PROVIDERS = ["openrouter", "gemini"];
+function updateModeLabel() {
+  const label = $("#mode_label");
+  if (label) label.textContent = keyMode === "auto" ? "Авто-режим" : "Ручной режим";
+}
+function renderKeySection(mode) {
+  buildKeyRows(mode);
+  loadKeyInfo();
+}
+function buildKeyRows(mode) {
   const box = $("#s_keys");
   box.innerHTML = "";
   updateEmptyState();
   PROVIDERS.forEach((p) => {
+    const isAuto = mode === "auto" && AUTO_PROVIDERS.includes(p);
     const row = document.createElement("div");
-    row.className = "pkrow";
+    row.className = "pkrow" + (isAuto ? " auto" : "");
     const inp = document.createElement("input");
     inp.type = "password";
     inp.id = "s_key_" + p;
-    inp.placeholder = "ключ " + (PROVIDER_LABELS[p] || p);
     inp.autocomplete = "off";
+    if (isAuto) {
+      inp.disabled = true;
+      inp.value = "";
+      inp.placeholder = "Автоключ — " + (PROVIDER_LABELS[p] || p);
+    } else if (mode === "auto") {
+      inp.disabled = true;
+      inp.value = "";
+      inp.placeholder = "Только ручное добавление";
+      row.classList.add("manual-only");
+    } else {
+      inp.placeholder = "ключ " + (PROVIDER_LABELS[p] || p);
+    }
+    const right = document.createElement("span");
+    right.style.display = "inline-flex";
+    right.style.alignItems = "center";
+    right.style.gap = "6px";
+    right.style.flex = "0 0 auto";
+    if (isAuto) {
+      const badge = document.createElement("span");
+      badge.className = "pk-badge auto-badge";
+      badge.textContent = "АВТО";
+      right.appendChild(badge);
+    } else if (mode === "auto") {
+      const badge = document.createElement("span");
+      badge.className = "pk-badge manual-badge";
+      badge.textContent = "РУЧНОЙ";
+      right.appendChild(badge);
+    }
     const st = document.createElement("span");
     st.className = "pkstatus";
     st.id = "key_status_" + p;
     st.textContent = "—";
+    right.appendChild(st);
     row.appendChild(inp);
-    row.appendChild(st);
+    row.appendChild(right);
     box.appendChild(row);
   });
 }
 function collectProviderKeys() {
   const keys = {};
   PROVIDERS.forEach((p) => {
-    const v = ($("#s_key_" + p).value || "").trim();
+    const inp = $("#s_key_" + p);
+    if (!inp || inp.disabled) return;
+    const v = (inp.value || "").trim();
     if (v) keys[p] = v;
   });
   return keys;
@@ -1297,10 +1345,23 @@ async function loadKeyInfo() {
     const data = await res.json();
     console.debug("[keyinfo] response", data);
     if (!data.ok) return;
+    const mode = data.key_mode || "manual";
     PROVIDERS.forEach((p) => {
       const k = (data.keys && data.keys[p]) || {};
       const st = $("#key_status_" + p);
-      if (st) st.textContent = k.has ? "<svg class='icon'><use href='#icon-check'/></svg> сохранён" : "— нет";
+      const inp = $("#s_key_" + p);
+      if (!st) return;
+      if (mode === "auto" && AUTO_PROVIDERS.includes(p) && k.auto) {
+        st.textContent = "<svg class='icon'><use href='#icon-check'/></svg> авто";
+      } else if (k.has) {
+        st.textContent = "<svg class='icon'><use href='#icon-check'/></svg> сохранён";
+        if (inp && !inp.disabled && !inp.value) {
+          inp.value = "••••••••••••••••";
+        }
+      } else {
+        st.textContent = "— нет";
+        if (inp && !inp.disabled) inp.value = "";
+      }
     });
   } catch {}
 }
@@ -2399,6 +2460,7 @@ $("#s_save").addEventListener("click", async () => { vibClick();
     theme: ["monochrome", "hacker", "candy"].includes(theme) || ["nord", "synthwave"].includes(theme) ? "dark" : theme,
     notify_vibrate: $("#s_vibrate") ? $("#s_vibrate").checked : false,
     vib_strength: getVibStrength(),
+    key_mode: keyMode,
   });
   payload.provider_keys = collectProviderKeys();
   console.debug("[settings] save payload keys=", Object.keys(payload), "provider_keys=", payload.provider_keys);
@@ -2415,7 +2477,8 @@ $("#s_save").addEventListener("click", async () => { vibClick();
     status.innerHTML = "сохранено <i data-lucide='check' class='lucide'></i>";
     if (window.lucide) lucide.createIcons();
     PROVIDERS.forEach((p) => {
-      $("#s_key_" + p).value = "";
+      const inp = $("#s_key_" + p);
+      if (inp && !inp.disabled) inp.value = "";
     });
     await loadKeyInfo();
     needsKey = false;
@@ -2453,6 +2516,20 @@ $("#s_save").addEventListener("click", async () => { vibClick();
     console.error("[settings] save failed", err);
   }
 });
+
+const keyModeToggle = $("#s_key_mode");
+if (keyModeToggle) {
+  keyModeToggle.addEventListener("change", async () => {
+    vibClick();
+    const newMode = keyModeToggle.checked ? "auto" : "manual";
+    if (newMode === keyMode) return;
+    keyMode = newMode;
+    updateModeLabel();
+    renderKeySection(keyMode);
+    await ef("settings", Object.assign(authBody(), { key_mode: keyMode }), 15000);
+    loadKeyInfo();
+  });
+}
 
 document.querySelectorAll(".seg-picker").forEach((picker) => {
   picker.addEventListener("click", (e) => { vibClick();
@@ -3065,7 +3142,7 @@ async function tryAutoAdmin() {
 
 (async () => {
   try {
-    buildKeyRows();
+    buildKeyRows(keyMode);
     if (inTelegram) {
       // Внутри Telegram ID пользователя подтягивается автоматически из initData.
       await auth("");
