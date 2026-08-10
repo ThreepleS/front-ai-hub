@@ -316,10 +316,15 @@
                    </label>
                  </div>
                </div>
-               <div id="s_keys" class="provkeys"></div>
-               <a id="s_keys_help" class="btn ghost sm" style="margin-top:8px" href="https://cat-penguin-ac7.notion.site/API-3a753a5bca1a808bb9b6e2f4be78d865?source=copy_link" target="_blank" rel="noopener noreferrer">
-                 <i data-lucide="file-text" class="icon"></i> Где взять ключ?
-               </a>
+              <div id="s_keys" class="provkeys"></div>
+              <div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;">
+                <a id="s_keys_help" class="btn ghost sm" href="https://cat-penguin-ac7.notion.site/API-3a753a5bca1a808bb9b6e2f4be78d865?source=copy_link" target="_blank" rel="noopener noreferrer">
+                  <i data-lucide="file-text" class="icon"></i> Где взять ключ?
+                </a>
+                <button id="google_signin" class="btn ghost sm" type="button">
+                  <i data-lucide="chrome" class="icon"></i> Войти через Google
+                </button>
+              </div>
              </div>
            </div>
 
@@ -713,6 +718,7 @@
     </div>
     <script src="./sw-register.js"></script>
     <script src="./app.js?v=20260723_0400"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- DEV ONLY: мобильная консоль отладки (eruda). Не удалять временно. -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>

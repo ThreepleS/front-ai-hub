@@ -87,6 +87,7 @@ let isAdmin = false;
 let needsKey = false;
 let pendingImage = null;
 let lastUserMessage = "";
+const GOOGLE_CLIENT_ID = ""; // Замените на ваш Google OAuth Client ID
 
 function escapeHtml(s) {
   return String(s).replace(
@@ -1352,17 +1353,18 @@ async function loadKeyInfo() {
       const inp = $("#s_key_" + p);
       if (!st) return;
       if (mode === "auto" && AUTO_PROVIDERS.includes(p) && k.auto) {
-        st.textContent = "<svg class='icon'><use href='#icon-check'/></svg> авто";
+        st.innerHTML = "<i data-lucide='check' class='lucide'></i> авто";
       } else if (k.has) {
-        st.textContent = "<svg class='icon'><use href='#icon-check'/></svg> сохранён";
+        st.innerHTML = "<i data-lucide='check' class='lucide'></i> сохранён";
         if (inp && !inp.disabled && !inp.value) {
           inp.value = "••••••••••••••••";
         }
       } else {
-        st.textContent = "— нет";
+        st.innerHTML = "— нет";
         if (inp && !inp.disabled) inp.value = "";
       }
     });
+    if (window.lucide) lucide.createIcons();
   } catch {}
 }
 
@@ -2925,7 +2927,49 @@ function vibClick() {
   if (vib && vib.checked && navigator.vibrate) navigator.vibrate(10);
 }
 function syncSegPickers() {
-  document.querySelectorAll(".seg-picker").forEach((picker) => {
+const googleBtn = $("#google_signin");
+if (googleBtn) {
+  googleBtn.addEventListener("click", async () => {
+    vibClick();
+    if (!GOOGLE_CLIENT_ID) {
+      await showAlert("Google OAuth не настроен", "Добавьте GOOGLE_CLIENT_ID в конфиг приложения.");
+      return;
+    }
+    if (!window.google || !google.accounts) {
+      await showAlert("Ошибка", "Google Sign-In не загружен. Попробуйте обновить страницу.");
+      return;
+    }
+    try {
+      const res = await new Promise((resolve, reject) => {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: (response: any) => resolve(response),
+          error_callback: (err: any) => reject(err),
+        });
+        google.accounts.id.prompt((notification: any) => {
+          if (notification.isNotDisplayed()) {
+            reject(new Error("Google prompt не показан"));
+          }
+        });
+      });
+      const idToken = (res as any).credential;
+      if (!idToken) throw new Error("Отсутствует credential");
+      const data = await ef("google-auth", { id_token: idToken }, 15000);
+      if (!data.ok) throw new Error(data.error || "Ошибка авторизации");
+      currentUserId = String(data.user_id);
+      keyMode = data.key_mode || "auto";
+      const modeToggle = $("#s_key_mode");
+      if (modeToggle) modeToggle.checked = keyMode === "auto";
+      updateModeLabel();
+      renderKeySection(keyMode);
+      await auth("");
+    } catch (e: any) {
+      await showAlert("Ошибка входа", String(e?.message || e));
+    }
+  });
+}
+
+document.querySelectorAll(".seg-picker").forEach((picker) => {
     const name = picker.dataset.name;
     const val = picker.dataset.value;
     picker.querySelectorAll(".seg-btn").forEach((btn) => {

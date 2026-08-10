@@ -33,12 +33,24 @@ function authBody() {
 }
 async function pjson(action, extra) {
   const body = Object.assign(authBody(), { action }, extra || {});
-  const res = await fetch(API_BASE + "/admin", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  return res.json();
+  let res;
+  try {
+    res = await fetch(API_BASE + "/admin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    throw new Error("сетевая ошибка: " + String(e));
+  }
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    const text = await res.text();
+    throw new Error("сервер вернул не-JSON (" + res.status + "): " + text.slice(0, 200));
+  }
+  return data;
 }
 const esc = (s) =>
   String(s ?? "").replace(
@@ -102,11 +114,35 @@ async function doLogin() {
 }
 async function boot() {
   if (!inTelegram && !initData) {
-    $("#login_err").textContent =
+    const devId = localStorage.getItem("dev_user");
+    if (devId && getEnv("WEB_APP_DEV")) {
+      try {
+        const data = await pjson("summary");
+        if (data.ok) {
+          currentAdminId = String(data.admin_id || devId);
+          $("#login").style.display = "none";
+          $("#app").style.display = "block";
+          loadAll();
+          return;
+        }
+      } catch (e) {
+        $("#login_err").innerHTML = "<i data-lucide='alert-triangle' class='lucide'></i> " + String(e);
+        return;
+      }
+    }
+    $("#login_err").innerHTML =
       "<i data-lucide='ban' class='lucide'></i> Откройте админ-панель внутри Telegram (через бота).";
     return;
   }
   await doLogin();
+}
+function getEnv(key) {
+  try {
+    const url = new URL(location.href);
+    const fromUrl = url.searchParams.get(key);
+    if (fromUrl) return fromUrl;
+  } catch {}
+  return "";
 }
 boot();
 
