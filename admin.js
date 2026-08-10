@@ -179,7 +179,15 @@ function renderUsers(users) {
 }
 
 async function usrAction(action, uid) {
-  if (action === "reset" && !confirm(`Сбросить пользователя ${uid}?`)) return;
+  if (action === "reset") {
+    const ok = await showDangerModal(`Сбросить пользователя ${uid}?`, "Это действие нельзя отменить.");
+    if (!ok) return;
+    const confirmed = await with2FA("user", { sub_action: "reset", user_id: uid });
+    if (!confirmed) return;
+    flash(confirmed.message || confirmed.error || "ошибка");
+    if (confirmed.ok) loadAll();
+    return;
+  }
   const d = await pjson("user", { sub_action: action, user_id: uid });
   flash(d.ok ? d.message : d.error || "ошибка");
   if (d.ok) loadAll();
@@ -270,10 +278,11 @@ async function wlAddDays(uid) {
   if (r.ok) loadAll();
 }
 async function wlRemove(uid) {
-  if (!confirm(`Удалить ${uid} из белого списка?`)) return;
-  const d = await pjson("whitelist", { sub_action: "remove", user_id: uid });
-  flash(d.ok ? d.message : d.error || "ошибка");
-  if (d.ok) loadAll();
+  const ok = await showDangerModal(`Удалить ${uid} из белого списка?`, "Пользователь потеряет доступ.");
+  if (!ok) return;
+  const confirmed = await with2FA("whitelist", { sub_action: "remove", user_id: uid });
+  flash(confirmed.ok ? confirmed.message : confirmed.error || "ошибка");
+  if (confirmed.ok) loadAll();
 }
 async function wlNote(uid) {
   const note = prompt("Новая пометка:");
@@ -287,10 +296,38 @@ async function wlNote(uid) {
   if (d.ok) loadAll();
 }
 async function resetAll() {
-  if (!confirm("Сбросить ВСЕХ пользователей? Белый список сохранится.")) return;
-  const d = await pjson("reset_all", {});
-  flash(d.ok ? d.message : d.error || "ошибка");
-  if (d.ok) loadAll();
+  const ok = await showDangerModal("Сбросить ВСЕХ пользователей?", "Белый список сохранится. Это действие нельзя отменить.");
+  if (!ok) return;
+  const confirmed = await with2FA("reset_all", {});
+  flash(confirmed.ok ? confirmed.message : confirmed.error || "ошибка");
+  if (confirmed.ok) loadAll();
+}
+
+async function with2FA(action, params = {}) {
+  const req = await pjson("request_2fa", { for_action: action });
+  if (!req.ok) return req;
+  const code = String(req.code || "");
+  const input = await show2FAModal(code);
+  if (!input) return { ok: false, error: "Отменено" };
+  return pjson(action, Object.assign({}, params, { confirm: input }));
+}
+
+async function show2FAModal(expectedCode) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:9999";
+    const box = document.createElement("div");
+    box.style.cssText = "background:#1a1a1a;color:#fff;padding:24px;border-radius:12px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5)";
+    box.innerHTML = `<h3 style="margin:0 0 8px;font-size:18px">Двухфакторная проверка</h3><p style="margin:0 0 16px;color:#aaa;font-size:14px;line-height:1.5">Введите код подтверждения:<br><strong style="color:#fff;font-size:20px;letter-spacing:4px">${esc(expectedCode)}</strong></p><input id="faInput" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" style="width:100%;padding:12px;border-radius:8px;border:1px solid #333;background:#0a0a0a;color:#fff;font-size:18px;letter-spacing:4px;text-align:center;margin-bottom:12px;box-sizing:border-box"><div style="text-align:right"><button id="faCancel" style="background:#333;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;margin-right:8px">Отмена</button><button id="faConfirm" style="background:#2563eb;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer">Подтвердить</button></div>`;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    const inputEl = box.querySelector("#faInput");
+    inputEl.focus();
+    const close = (val) => { document.body.removeChild(overlay); resolve(val); };
+    box.querySelector("#faCancel").onclick = () => close(null);
+    box.querySelector("#faConfirm").onclick = () => close(inputEl.value.trim());
+    inputEl.addEventListener("keydown", (e) => { if (e.key === "Enter") close(inputEl.value.trim()); });
+  });
 }
 
 $("#wl_type").addEventListener("change", (e) => {
