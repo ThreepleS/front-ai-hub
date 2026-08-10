@@ -2533,6 +2533,95 @@ if (keyModeToggle) {
   });
 }
 
+// --- Google OAuth --------------------------------------------------------
+function loadGoogleScript() {
+  return new Promise<void>((resolve, reject) => {
+    if (window.google && google.accounts && google.accounts.id) {
+      resolve();
+      return;
+    }
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.async = true;
+    s.defer = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("Не удалось загрузить Google Sign-In"));
+    document.head.appendChild(s);
+  });
+}
+async function initGoogleAuth() {
+  const container = $("#google_btn_container");
+  const fallbackBtn = $("#google_signin_fallback");
+  const fallbackSection = $("#google_token_fallback");
+  if (!container || !fallbackBtn || !fallbackSection) return;
+  if (!GOOGLE_CLIENT_ID) {
+    container.style.display = "none";
+    fallbackBtn.style.display = "inline-flex";
+    fallbackSection.style.display = "flex";
+    fallbackBtn.addEventListener("click", () => fallbackSection.style.display = fallbackSection.style.display === "none" ? "flex" : "none");
+    return;
+  }
+  try {
+    await loadGoogleScript();
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: async (response: any) => {
+        if (!response.credential) return;
+        try {
+          const data = await ef("google-auth", { id_token: response.credential }, 15000);
+          if (!data.ok) throw new Error(data.error || "Ошибка авторизации");
+          currentUserId = String(data.user_id);
+          keyMode = data.key_mode || "auto";
+          const modeToggle = $("#s_key_mode");
+          if (modeToggle) modeToggle.checked = keyMode === "auto";
+          updateModeLabel();
+          renderKeySection(keyMode);
+          await auth("");
+          await showAlert("Успех", "Вы вошли через Google. Режим: авто.");
+        } catch (e: any) {
+          await showAlert("Ошибка входа", String(e?.message || e));
+        }
+      },
+    });
+    google.accounts.id.renderButton(container, {
+      theme: "outline",
+      size: "large",
+      width: 240,
+    });
+    container.style.display = "inline-flex";
+    fallbackBtn.style.display = "none";
+    fallbackSection.style.display = "none";
+  } catch (e) {
+    container.style.display = "none";
+    fallbackBtn.style.display = "inline-flex";
+    fallbackSection.style.display = "flex";
+  }
+}
+if ($("#google_signin_fallback")) {
+  $("#google_signin_fallback").addEventListener("click", async () => {
+    vibClick();
+    const token = ($("#google_id_token").value || "").trim();
+    if (!token) {
+      await showAlert("Ошибка", "Вставьте Google ID token");
+      return;
+    }
+    try {
+      const data = await ef("google-auth", { id_token: token }, 15000);
+      if (!data.ok) throw new Error(data.error || "Ошибка авторизации");
+      currentUserId = String(data.user_id);
+      keyMode = data.key_mode || "auto";
+      const modeToggle = $("#s_key_mode");
+      if (modeToggle) modeToggle.checked = keyMode === "auto";
+      updateModeLabel();
+      renderKeySection(keyMode);
+      await auth("");
+      await showAlert("Успех", "Вы вошли через Google. Режим: авто.");
+    } catch (e: any) {
+      await showAlert("Ошибка входа", String(e?.message || e));
+    }
+  });
+}
+
 document.querySelectorAll(".seg-picker").forEach((picker) => {
   picker.addEventListener("click", (e) => { vibClick();
     const btn = e.target.closest(".seg-btn");
@@ -3103,6 +3192,7 @@ $("#s_pwa").addEventListener("click", async () => {
 });
 
 // --- Gear / dev login ------------------------------------------------
+let googleAuthInitialized = false;
 function openSettings(tab = null) {
   mbClose();
   const settingsEl = $("#settings");
@@ -3125,6 +3215,10 @@ function openSettings(tab = null) {
   syncSegPickers();
   updateVibVal();
   loadKeyInfo();
+  if (tab === "keys" && !googleAuthInitialized) {
+    googleAuthInitialized = true;
+    initGoogleAuth();
+  }
   if (tab) {
     document.querySelectorAll(".stab").forEach(t => t.classList.remove("active"));
     document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
