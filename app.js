@@ -87,7 +87,7 @@ let isAdmin = false;
 let needsKey = false;
 let pendingImage = null;
 let lastUserMessage = "";
-const GOOGLE_CLIENT_ID = ""; // Замените на ваш Google OAuth Client ID
+const GOOGLE_CLIENT_ID = (typeof window !== "undefined" && window.GOOGLE_CLIENT_ID) ? String(window.GOOGLE_CLIENT_ID) : "";
 
 function escapeHtml(s) {
   return String(s).replace(
