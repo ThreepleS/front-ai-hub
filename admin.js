@@ -41,14 +41,17 @@ async function pjson(action, extra) {
       body: JSON.stringify(body),
     });
   } catch (e) {
-    throw new Error("сетевая ошибка: " + String(e));
+    throw new Error("Сетевая ошибка: " + String(e));
   }
   let data;
   try {
     data = await res.json();
   } catch (e) {
     const text = await res.text();
-    throw new Error("сервер вернул не-JSON (" + res.status + "): " + text.slice(0, 200));
+    throw new Error("Сервер вернул не-JSON (" + res.status + "): " + text.slice(0, 200));
+  }
+  if (!res.ok && data.error) {
+    throw new Error("Ошибка (" + res.status + "): " + data.error);
   }
   return data;
 }

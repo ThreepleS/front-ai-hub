@@ -87,7 +87,7 @@ let isAdmin = false;
 let needsKey = false;
 let pendingImage = null;
 let lastUserMessage = "";
-const GOOGLE_CLIENT_ID = (typeof window !== "undefined" && window.GOOGLE_CLIENT_ID) ? String(window.GOOGLE_CLIENT_ID) : "";
+const GOOGLE_CLIENT_ID = (typeof window !== "undefined" && window.GOOGLE_CLIENT_ID) ? String(window.GOOGLE_CLIENT_ID) : "688453339516-n83aael6s514cfk93n7mrsna07b1i5bk.apps.googleusercontent.com";
 
 function escapeHtml(s) {
   return String(s).replace(
